@@ -1,34 +1,26 @@
-package net.codelabz.evmclient.dto;
+package net.osslabz.evmclient.dto;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.ToString;
 
 import java.io.Serializable;
 import java.math.BigInteger;
 
+/**
+ * Represents an ERC-20 compatible token on a EVM-compatible chain.
+ *
+ * Each token instance carries a Chain instance that provides detailed information of the token's chain.
+ */
 @Data
-public class Erc20Token implements Serializable {
-
-    private final Chain chain;
+public class Erc20Token extends Coin implements Serializable {
 
     private final String contractAddress;
-
-    private String name;
-
-    private String symbol;
-
-    private BigInteger decimals;
 
     private final BigInteger totalSupply;
 
 
     public Erc20Token(Chain chainInfo, String contractAddress, String name, String symbol, BigInteger decimals, BigInteger totalSupply) {
-        this.chain = chainInfo;
+        super(chainInfo, name, symbol, decimals);
         this.contractAddress = contractAddress;
-        this.name = name;
-        this.symbol = symbol;
-        this.decimals = decimals;
         this.totalSupply = totalSupply;
     }
 }

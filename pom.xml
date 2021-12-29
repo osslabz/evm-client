@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>net.codelabz</groupId>
+    <groupId>net.osslabz</groupId>
     <artifactId>evm-client</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
@@ -11,13 +11,17 @@
     <description>A simple wrapper around web3j to simplify common use-cases. Also provides pre-configured informations
         to access other EVM-compatible chaims except Ethereum itself (e.g. Avalanche).
     </description>
-    <url>http://www.example.com/example-application</url>
+    <url>https://github.com/rvullriede/evm-client</url>
 
     <properties>
         <java.version>8</java.version>
+        <project.defaultEncoding>UTF-8</project.defaultEncoding>
 
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+
+        <project.build.sourceEncoding>${project.defaultEncoding}</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>${project.defaultEncoding}</project.reporting.outputEncoding>
 
         <web3j.version>4.8.7</web3j.version>
     </properties>
@@ -39,9 +43,9 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/simpligility/ossrh-demo.git</connection>
-        <developerConnection>scm:git:ssh://github.com:simpligility/ossrh-demo.git</developerConnection>
-        <url>http://github.com/simpligility/ossrh-demo/tree/master</url>
+        <connection>scm:git:ssh://git@github.com:rvullriede/evm-client.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:rvullriede/evm-client.git</developerConnection>
+        <url>https://github.com/rvullriede/evm-client</url>
         <tag>main</tag>
     </scm>
 
@@ -63,6 +67,7 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.22</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- logging -->
@@ -114,7 +119,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>2.2.1</version>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -127,16 +132,20 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9.1</version>
+                <version>3.3.1</version>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
                         <goals>
                             <goal>jar</goal>
                         </goals>
+                        <configuration>
+                            <failOnError>false</failOnError>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
+            <!--
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
@@ -151,6 +160,7 @@
                     </execution>
                 </executions>
             </plugin>
+            -->
         </plugins>
     </build>
 

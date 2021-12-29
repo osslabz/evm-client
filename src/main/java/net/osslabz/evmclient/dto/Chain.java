@@ -1,7 +1,7 @@
-package net.codelabz.evmclient.dto;
+package net.osslabz.evmclient.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
-import lombok.Getter;
 
 import java.io.Serializable;
 
@@ -15,7 +15,6 @@ public class Chain implements Serializable {
     public static final Chain ETHEREUM_MAIN = new Chain("Ethereum Network", "ETH", NetworkType.MAIN, 1, "https://cloudflare-eth.com/", " https://etherscan.io/");
 
     private final String name;
-    private final String symbol;
 
     private final NetworkType type;
 
@@ -24,18 +23,21 @@ public class Chain implements Serializable {
     private final String rpcUrl;
     private final String explorerUrl;
 
+    @JsonIgnore
+    private final Coin coin;
 
     Chain(String name, String symbol, NetworkType type, int id, String rpcUrl, String explorerUrl) {
         this.name = name;
-        this.symbol = symbol;
         this.type = type;
         this.id = id;
         this.rpcUrl = rpcUrl;
         this.explorerUrl = explorerUrl;
+
+        this.coin = new Coin(this, symbol);
     }
 
 
     public String toString() {
-        return this.getClass().getName() + "(name=" + this.name + ", symbol=" + this.symbol + ", type=" + this.type + ", id=" + this.id + ")";
+        return this.getClass().getName() + "(name=" + this.name + ", type=" + this.type + ", id=" + this.id + ", coin=" + this.coin.toStringWithoutChain() + ")";
     }
 }

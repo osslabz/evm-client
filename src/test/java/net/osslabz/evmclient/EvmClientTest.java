@@ -1,8 +1,9 @@
-package net.codelabz.evmclient;
+package net.osslabz.evmclient;
 
 import lombok.extern.slf4j.Slf4j;
-import net.codelabz.evmclient.dto.Chain;
-import net.codelabz.evmclient.dto.Erc20Token;
+import net.osslabz.evmclient.dto.Chain;
+import net.osslabz.evmclient.dto.CoinBalance;
+import net.osslabz.evmclient.dto.Erc20Token;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -21,5 +22,13 @@ public class EvmClientTest {
         Assertions.assertEquals("WAVAX", tokenInfo.getSymbol());
         Assertions.assertEquals("Wrapped AVAX", tokenInfo.getName());
         Assertions.assertEquals(18, tokenInfo.getDecimals().intValueExact());
+    }
+
+    @Test
+    public void testGetBalance() throws Exception {
+        EvmClient evmClient = new EvmClient(Chain.AVALANCHE_MAIN);
+        CoinBalance balance = evmClient.getBalance("0x81c36bAb8dB9C25E6736427C13E183B881Cb00bD");
+
+        log.debug("balance: {}", balance);
     }
 }

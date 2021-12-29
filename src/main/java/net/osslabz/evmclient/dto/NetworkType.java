@@ -1,4 +1,4 @@
-package net.codelabz.evmclient.dto;
+package net.osslabz.evmclient.dto;
 
 public enum NetworkType {
     MAIN,

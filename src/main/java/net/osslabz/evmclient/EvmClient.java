@@ -1,19 +1,23 @@
-package net.codelabz.evmclient;
+package net.osslabz.evmclient;
 
 import lombok.Getter;
-import net.codelabz.evmclient.dto.Balance;
-import net.codelabz.evmclient.dto.Chain;
-import net.codelabz.evmclient.dto.Erc20Token;
+import net.osslabz.evmclient.dto.CoinBalance;
+import net.osslabz.evmclient.dto.Erc20TokenBalance;
+import net.osslabz.evmclient.dto.Chain;
+import net.osslabz.evmclient.dto.Erc20Token;
 import org.web3j.contracts.eip20.generated.ERC20;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.ReadonlyTransactionManager;
 import org.web3j.tx.gas.DefaultGasProvider;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.math.BigInteger;
 
 @Getter
-public class EvmClient {
+public class EvmClient implements Closeable {
 
     private final Chain chainInfo;
 
@@ -26,7 +30,7 @@ public class EvmClient {
     }
 
 
-    public Erc20Token getTokenInfo(String contractAddress) throws Exception {
+    public Erc20Token getTokenInfo(String contractAddress) {
 
         ERC20 erc20 = loadContractWithReadOnlyDefaults(contractAddress);
         Erc20Token tokenInfo = getTokenInfo(erc20);
@@ -35,35 +39,47 @@ public class EvmClient {
     }
 
 
-    public Balance getBalance(String contractAddress, String address) {
+    public CoinBalance getBalance(String address) {
+
+        try {
+            BigInteger balance = this.web3j.ethGetBalance(address, DefaultBlockParameterName.LATEST).send().getBalance();
+            String code = this.web3j.ethGetCode(address, DefaultBlockParameterName.LATEST).send().getCode();
+            return new CoinBalance(this.chainInfo, balance);
+        } catch (IOException e) {
+            throw new EvmClientException(e);
+        }
+    }
+
+
+    public Erc20TokenBalance getTokenBalance(String contractAddress, String address) {
 
         ERC20 erc20 = loadContractWithReadOnlyDefaults(contractAddress);
         Erc20Token tokenInfo = getTokenInfo(erc20);
 
         try {
             BigInteger balance = erc20.balanceOf(address).send();
-            return new Balance(tokenInfo, balance);
+            return new Erc20TokenBalance(tokenInfo, balance);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new EvmClientException(e);
         }
     }
 
 
-    public Balance getBalance(Erc20Token tokenInfo, String address) {
+    public Erc20TokenBalance getTokenBalance(Erc20Token tokenInfo, String address) {
         if (!this.chainInfo.equals(tokenInfo.getChain())) {
             throw new IllegalArgumentException("This instance of " + this.getClass().getName() + " is bound to chain " + this.chainInfo + ", the provided token is from chain " + tokenInfo.getChain() + ".");
         }
         try {
             ERC20 erc20 = loadContractWithReadOnlyDefaults(tokenInfo.getContractAddress());
             BigInteger balance = erc20.balanceOf(address).send();
-            return new Balance(tokenInfo, balance);
+            return new Erc20TokenBalance(tokenInfo, balance);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new EvmClientException(e);
         }
     }
 
 
-    private ERC20 loadContractWithReadOnlyDefaults(String contractAddress) {
+    public ERC20 loadContractWithReadOnlyDefaults(String contractAddress) {
 
         ReadonlyTransactionManager readOnlyTransactionManager = new ReadonlyTransactionManager(web3j, contractAddress);
         DefaultGasProvider contractGasProvider = new DefaultGasProvider();
@@ -87,7 +103,23 @@ public class EvmClient {
 
             return tokenInfo;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new EvmClientException(e);
         }
+    }
+
+
+    public void shutdown() {
+        this.web3j.shutdown();
+    }
+
+
+    /**
+     * Alias for {@link this.shutdown()} for those who fancy a closable interface.
+     *
+     * @throws IOException
+     */
+    @Override
+    public void close() throws IOException {
+        this.shutdown();
     }
 }
