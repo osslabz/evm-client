@@ -24,7 +24,7 @@ public class Chain implements Serializable {
     private final String explorerUrl;
 
     @JsonIgnore
-    private final Coin coin;
+    private final PrimaryCoin coin;
 
     Chain(String name, String symbol, NetworkType type, int id, String rpcUrl, String explorerUrl) {
         this.name = name;
@@ -33,11 +33,11 @@ public class Chain implements Serializable {
         this.rpcUrl = rpcUrl;
         this.explorerUrl = explorerUrl;
 
-        this.coin = new Coin(this, symbol);
+        this.coin = new PrimaryCoin(symbol);
     }
 
 
     public String toString() {
-        return this.getClass().getName() + "(name=" + this.name + ", type=" + this.type + ", id=" + this.id + ", coin=" + this.coin.toStringWithoutChain() + ")";
+        return this.getClass().getName() + "(name=" + this.name + ", type=" + this.type + ", id=" + this.id + ", coin=" + this.coin + ")";
     }
 }

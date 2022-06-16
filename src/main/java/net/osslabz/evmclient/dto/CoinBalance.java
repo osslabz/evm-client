@@ -8,7 +8,7 @@ import java.math.BigInteger;
 @Data
 public class CoinBalance implements Serializable {
 
-    private final Coin coin;
+    private final PrimaryCoin coin;
 
     private final BigInteger balance;
 

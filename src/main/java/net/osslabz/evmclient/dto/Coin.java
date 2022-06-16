@@ -1,6 +1,9 @@
 package net.osslabz.evmclient.dto;
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.Value;
 
 import java.io.Serializable;
 import java.math.BigInteger;
@@ -10,17 +13,11 @@ import java.math.BigInteger;
  * <p>
  * Each Coin instance carries a {@link Chain} instance that provides detailed information of the token's chain.
  */
-@Data
-public class Coin implements Serializable {
+@Getter
+@Setter
+public class Coin extends PrimaryCoin {
 
     private final Chain chain;
-
-    private String name;
-
-    private String symbol;
-
-    private BigInteger decimals;
-
 
     public Coin(Chain chain, String symbol) {
         this(chain, symbol, symbol);
@@ -28,26 +25,18 @@ public class Coin implements Serializable {
 
 
     public Coin(Chain chain, String name, String symbol) {
+        super(name, symbol);
         this.chain = chain;
-        this.name = name;
-        this.symbol = symbol;
     }
 
 
     public Coin(Chain chain, String name, String symbol, BigInteger decimals) {
+        super(name, symbol, decimals);
         this.chain = chain;
-        this.name = name;
-        this.symbol = symbol;
-        this.decimals = decimals;
-    }
-
-
-    public String toStringWithoutChain() {
-        return this.getClass().getName() + "(name=" + this.name + ", symbol=" + this.symbol + ", decimals=" + this.decimals + ")";
     }
 
 
     public String toString() {
-        return this.getClass().getName() + "(name=" + this.name + ", symbol=" + this.symbol + ", decimals=" + this.decimals + ", chain=" + this.chain + ")";
+        return super.toString() + "[chain= " + this.chain + "]";
     }
 }

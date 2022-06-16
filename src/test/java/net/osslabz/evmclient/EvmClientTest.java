@@ -19,6 +19,8 @@ public class EvmClientTest {
 
         log.debug("tokenInfo: {}", tokenInfo);
 
+        Erc20Token tokenInfo2 = evmClient.getTokenInfo(CONTRACT_ADDRESS_WRAPPED_AVAX_ON_AVALANCHE);
+
         Assertions.assertEquals("WAVAX", tokenInfo.getSymbol());
         Assertions.assertEquals("Wrapped AVAX", tokenInfo.getName());
         Assertions.assertEquals(18, tokenInfo.getDecimals().intValueExact());

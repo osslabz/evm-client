@@ -5,11 +5,11 @@
 
     <groupId>net.osslabz</groupId>
     <artifactId>evm-client</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.11-SNAPSHOT</version>
 
     <name>EvmClient (${project.groupId}:${project.artifactId})</name>
-    <description>A simple wrapper around web3j to simplify common use-cases. Also provides pre-configured informations
-        to access other EVM-compatible chaims except Ethereum itself (e.g. Avalanche).
+    <description>A simple wrapper around web3j to simplify common use-cases. Also provides pre-configured information
+        to access other EVM-compatible chains except Ethereum itself (e.g. Avalanche).
     </description>
     <url>https://github.com/rvullriede/evm-client</url>
 
@@ -23,7 +23,9 @@
         <project.build.sourceEncoding>${project.defaultEncoding}</project.build.sourceEncoding>
         <project.reporting.outputEncoding>${project.defaultEncoding}</project.reporting.outputEncoding>
 
-        <web3j.version>4.8.7</web3j.version>
+        <web3j.groupId>org.web3j</web3j.groupId>
+        <web3j.version>4.8.9</web3j.version>
+        <okhttp3.version>4.9.3</okhttp3.version>
     </properties>
 
     <licenses>
@@ -52,15 +54,37 @@
     <dependencies>
         <!-- JSON-RPC Client -->
         <dependency>
-            <groupId>org.web3j</groupId>
+            <groupId>${web3j.groupId}</groupId>
             <artifactId>core</artifactId>
             <version>${web3j.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.web3j</groupId>
+            <groupId>${web3j.groupId}</groupId>
             <artifactId>contracts</artifactId>
             <version>${web3j.version}</version>
         </dependency>
+
+        <!-- okhttp has some bug fixes for http/2 in recent versions, let's ensure we use the latest -->
+
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>${okhttp3.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>logging-interceptor</artifactId>
+            <version>${okhttp3.version}</version>
+        </dependency>
+
+        <!-- web3j brings https://github.com/TooTallNate/Java-WebSocket but we want to enforce the latest version -->
+        <dependency>
+            <groupId>org.java-websocket</groupId>
+            <artifactId>Java-WebSocket</artifactId>
+            <version>1.5.3</version>
+        </dependency>
+
 
         <!-- common tools -->
         <dependency>
@@ -103,6 +127,7 @@
                 <version>3.8.1</version>
                 <configuration>
                     <release>${java.version}</release>
+                    <forceJavacCompilerUse>true</forceJavacCompilerUse>
                 </configuration>
             </plugin>
             <plugin>
