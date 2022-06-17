@@ -44,10 +44,10 @@
     </developers>
 
     <scm>
-        <connection>scm:git:ssh://git@github.com:rvullriede/evm-client.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com:rvullriede/evm-client.git</developerConnection>
+        <connection>scm:git:ssh://git@github.com/rvullriede/evm-client.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/rvullriede/evm-client.git</developerConnection>
         <url>https://github.com/rvullriede/evm-client</url>
-        <tag>evm-client-0.0.11</tag>
+        <tag>main</tag>
     </scm>
 
     <dependencies>
