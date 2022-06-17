@@ -28,7 +28,7 @@ Maven
 <dependency>
     <groupId>net.osslabz</groupId>
     <artifactId>evm-client</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.13</version>
 </dependency>
 ```
 
