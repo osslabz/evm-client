@@ -22,7 +22,14 @@ public class InMemoryCookieJar implements CookieJar {
             log.debug("No cookies present (empty list), no cookies saved.");
         } else {
             log.debug("{} cookies saved to memory.", cookies.size());
-            this.cookies = cookies;
+            if (this.cookies == null) {
+                this.cookies = new ArrayList<>();
+            }
+            for (Cookie cookie : cookies) {
+                if (!this.cookies.contains(cookie)) {
+                    this.cookies.add(cookie);
+                }
+            }
         }
     }
 

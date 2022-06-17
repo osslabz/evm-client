@@ -94,8 +94,8 @@ public class EvmClient implements Closeable {
         builder.protocols(Collections.singletonList(Protocol.HTTP_1_1));
         builder.retryOnConnectionFailure(true);
 
-        if (log.isDebugEnabled()) {
-            HttpLoggingInterceptor logging = new HttpLoggingInterceptor(log::debug);
+        if (log.isTraceEnabled()) {
+            HttpLoggingInterceptor logging = new HttpLoggingInterceptor(log::trace);
             logging.setLevel(HttpLoggingInterceptor.Level.BODY);
             builder.addInterceptor(logging);
         }
