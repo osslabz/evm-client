@@ -4,7 +4,7 @@
 
     <groupId>net.osslabz</groupId>
     <artifactId>evm-client</artifactId>
-    <version>0.0.11</version>
+    <version>0.0.11-SNAPSHOT</version>
 
     <name>EvmClient (${project.groupId}:${project.artifactId})</name>
     <description>A simple wrapper around web3j to simplify common use-cases. Also provides pre-configured information
@@ -47,7 +47,7 @@
         <connection>scm:git:ssh://git@github.com/rvullriede/evm-client.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/rvullriede/evm-client.git</developerConnection>
         <url>https://github.com/rvullriede/evm-client</url>
-        <tag>evm-client-0.0.11</tag>
+        <tag>main</tag>
     </scm>
 
     <dependencies>
