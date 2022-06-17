@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>net.osslabz</groupId>
     <artifactId>evm-client</artifactId>
-    <version>0.0.11-SNAPSHOT</version>
+    <version>0.0.11</version>
 
     <name>EvmClient (${project.groupId}:${project.artifactId})</name>
     <description>A simple wrapper around web3j to simplify common use-cases. Also provides pre-configured information
@@ -48,7 +47,7 @@
         <connection>scm:git:ssh://git@github.com:rvullriede/evm-client.git</connection>
         <developerConnection>scm:git:ssh://git@github.com:rvullriede/evm-client.git</developerConnection>
         <url>https://github.com/rvullriede/evm-client</url>
-        <tag>main</tag>
+        <tag>evm-client-0.0.11</tag>
     </scm>
 
     <dependencies>
