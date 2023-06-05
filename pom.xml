@@ -23,7 +23,7 @@
         <project.reporting.outputEncoding>${project.defaultEncoding}</project.reporting.outputEncoding>
 
         <web3j.groupId>org.web3j</web3j.groupId>
-        <web3j.version>4.8.9</web3j.version>
+        <web3j.version>5.0.0</web3j.version>
         <okhttp3.version>4.11.0</okhttp3.version>
     </properties>
 
