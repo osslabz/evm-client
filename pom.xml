@@ -5,7 +5,7 @@
 
     <groupId>net.osslabz</groupId>
     <artifactId>evm-client</artifactId>
-    <version>0.0.14-SNAPSHOT</version>
+    <version>0.0.14</version>
 
     <name>EvmClient (${project.groupId}:${project.artifactId})</name>
     <description>A simple wrapper around web3j to simplify common use-cases. Also provides pre-configured information
