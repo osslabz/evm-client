@@ -2,7 +2,7 @@ EvmClient
 ============
 ![GitHub](https://img.shields.io/github/license/osslabz/evm-client)
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/osslabz/evm-client/maven.yml?branch=main)
-[![Maven Central](https://img.shields.io/maven-central/v/net.osslabz/evm-client?label=Maven%20Central)](https://search.maven.org/artifact/net.osslabz/evm-abi-client)
+[![Maven Central](https://img.shields.io/maven-central/v/net.osslabz/evm-client?label=Maven%20Central)](https://search.maven.org/artifact/net.osslabz/evm-client)
 
 EvmClient is a thin wrapper around [web3j](https://github.com/web3j/web3j "Web3j: Web3 Java Ethereum Ðapp API")  which
 provides some convenient methods to get ERC20 contract details, check balances etc.
