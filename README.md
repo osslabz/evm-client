@@ -1,8 +1,8 @@
 EvmClient
 ============
-[![License](http://img.shields.io/:license-apache-brightgreen.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/rvullriede/evm-client/Java%20CI%20with%20Maven)
-[![Maven Central](https://img.shields.io/maven-central/v/net.osslabz/evm-client?label=Maven%20Central)](https://search.maven.org/artifact/net.osslabz/evm-client)
+![GitHub](https://img.shields.io/github/license/osslabz/evm-client)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/osslabz/evm-client/maven.yml?branch=main)
+[![Maven Central](https://img.shields.io/maven-central/v/net.osslabz/evm-client?label=Maven%20Central)](https://search.maven.org/artifact/net.osslabz/evm-abi-client)
 
 EvmClient is a thin wrapper around [web3j](https://github.com/web3j/web3j "Web3j: Web3 Java Ethereum Ðapp API")  which
 provides some convenient methods to get ERC20 contract details, check balances etc.
@@ -28,7 +28,7 @@ Maven
 <dependency>
     <groupId>net.osslabz</groupId>
     <artifactId>evm-client</artifactId>
-    <version>0.0.13</version>
+    <version>0.0.14</version>
 </dependency>
 ```
 
@@ -62,8 +62,9 @@ Erc20Token(
 
 Logging
 ------
-The actual client uses slf4j-api but doesn't package an implementation. This is up to the using application. For the
-tests logback is backing slf4j as implementation with a default configuration logging to STOUT.
+This project uses slf4j-api but doesn't package an implementation. This is up to the using application. For the
+tests logback is backing slf4j as implementation, with a default configuration logging to STOUT.
+
 
 Compatibility
 ------
