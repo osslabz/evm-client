@@ -8,11 +8,12 @@ import okhttp3.HttpUrl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class InMemoryCookieJar implements CookieJar {
 
-    private List<Cookie> cookies;
+    private final List<Cookie> cookies = new ArrayList<>();
 
     @Override
     public void saveFromResponse(HttpUrl url, List<Cookie> cookies) {
@@ -22,9 +23,6 @@ public class InMemoryCookieJar implements CookieJar {
             log.debug("No cookies present (empty list), no cookies saved.");
         } else {
             log.debug("{} cookies saved to memory.", cookies.size());
-            if (this.cookies == null) {
-                this.cookies = new ArrayList<>();
-            }
             for (Cookie cookie : cookies) {
                 if (!this.cookies.contains(cookie)) {
                     this.cookies.add(cookie);
@@ -35,13 +33,17 @@ public class InMemoryCookieJar implements CookieJar {
 
     @Override
     public List<Cookie> loadForRequest(HttpUrl url) {
-        if (this.cookies != null) {
-            log.debug("Sending {} cookies from memory storage.", this.cookies.size());
-            return this.cookies;
+        this.cookies.removeIf(cookie -> cookie.expiresAt() < System.currentTimeMillis());
+
+        List<Cookie> matchingCookies = this.cookies.stream().filter(cookie -> cookie.matches(url)).collect(Collectors.toList());
+
+        if (matchingCookies.isEmpty()) {
+            log.debug("No matching cookies for url={} available in memory, returning empty list (total num of cookies is {}).", url, this.cookies.size());
+            return Collections.emptyList();
         }
 
-        log.debug("No cookies available in memory, returning empty list.");
-        return Collections.emptyList();
+        log.debug("Sending {} matching cookies for url={} from memory storage (total num of cookies is {}).", matchingCookies.size(), url, this.cookies.size());
+        return matchingCookies;
     }
 }
 
