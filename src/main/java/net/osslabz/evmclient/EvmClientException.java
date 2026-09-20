@@ -9,4 +9,8 @@ public class EvmClientException extends RuntimeException {
     public EvmClientException(String message) {
         super(message);
     }
+
+    public EvmClientException(String message, Exception e) {
+        super(message, e);
+    }
 }
