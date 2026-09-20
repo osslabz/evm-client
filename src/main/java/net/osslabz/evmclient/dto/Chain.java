@@ -14,6 +14,8 @@ public class Chain implements Serializable {
     // Chain Details: https://docs.linkpool.io/docs/public_rpc
     public static final Chain ETHEREUM_MAIN = new Chain("Ethereum Network", "ETH", NetworkType.MAIN, 1, "https://cloudflare-eth.com/", "https://etherscan.io/");
 
+    public static final Chain BINANCE_SMART_CHAIN_MAIN = new Chain("Binance Smart Chain", "BNB", NetworkType.MAIN, 56, "https://bsc-dataseed.binance.org/", "https://bscscan.com");
+
     private final String name;
 
     private final NetworkType type;
