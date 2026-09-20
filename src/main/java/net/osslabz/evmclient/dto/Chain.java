@@ -9,10 +9,10 @@ import java.io.Serializable;
 public class Chain implements Serializable {
 
     // Chain Details: https://support.avax.network/en/articles/4626956-how-do-i-set-up-metamask-on-avalanche
-    public static final Chain AVALANCHE_MAIN = new Chain("Avalanche Network", "AVAX", NetworkType.MAIN, 43114, "https://api.avax.network/ext/bc/C/rpc", " https://snowtrace.io/");
+    public static final Chain AVALANCHE_MAIN = new Chain("Avalanche Network", "AVAX", NetworkType.MAIN, 43114, "https://api.avax.network/ext/bc/C/rpc", "https://snowtrace.io/");
 
     // Chain Details: https://docs.linkpool.io/docs/public_rpc
-    public static final Chain ETHEREUM_MAIN = new Chain("Ethereum Network", "ETH", NetworkType.MAIN, 1, "https://cloudflare-eth.com/", " https://etherscan.io/");
+    public static final Chain ETHEREUM_MAIN = new Chain("Ethereum Network", "ETH", NetworkType.MAIN, 1, "https://cloudflare-eth.com/", "https://etherscan.io/");
 
     private final String name;
 
