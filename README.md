@@ -1,7 +1,8 @@
 EvmClient
 ============
 ![GitHub](https://img.shields.io/github/license/osslabz/evm-client)
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/osslabz/evm-client/maven.yml?branch=main)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/osslabz/evm-client/maven.yml?branch=main&label=build&logo=git)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/osslabz/evm-client/maven-publish-release.yml?label=perform-release&logo=semanticrelease)
 [![Maven Central](https://img.shields.io/maven-central/v/net.osslabz/evm-client?label=Maven%20Central)](https://search.maven.org/artifact/net.osslabz/evm-client)
 
 EvmClient is a thin wrapper around [web3j](https://github.com/web3j/web3j "Web3j: Web3 Java Ethereum Ðapp API")  which
@@ -71,4 +72,4 @@ tests logback is backing slf4j as implementation, with a default configuration l
 
 Compatibility
 ------
-evm-client targets Java 1.8. It should run fine on Android but this hasn't been tested yet. If you use it on Android please let me know.
+evm-client targets Java 17. It should run fine on Android but this hasn't been tested yet. If you use it on Android please let me know.
