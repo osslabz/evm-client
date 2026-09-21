@@ -7,6 +7,9 @@ EvmClient
 EvmClient is a thin wrapper around [web3j](https://github.com/web3j/web3j "Web3j: Web3 Java Ethereum Ðapp API")  which
 provides some convenient methods to get ERC20 contract details, check balances etc.
 
+One author, two releases on Maven Central, and the newest of them, 0.0.14, is from June 2023. Two of its eight tests call
+Avalanche mainnet over the network, the rest run offline, and there is no API stability guarantee.
+
 Features:
 ---------
 
