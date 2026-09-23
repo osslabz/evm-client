@@ -1,0 +1,26 @@
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      releaseVersion:
+        description: Overrides the version the commit subjects imply (x.y.z). Empty keeps it.
+        required: false
+        type: string
+
+jobs:
+  release:
+    # Covers every job of the shared workflow; each job takes only what it needs.
+    permissions:
+      contents: write
+      actions: write
+    uses: osslabz/github-actions/.github/workflows/release.yml@v1
+    with:
+      publish-target: central
+      maven-profiles: osslabz-release,osslabz-publish
+      release-version: ${{ inputs.releaseVersion }}
+    secrets:
+      central-username: ${{ secrets.OSSRH_USERNAME }}
+      central-token: ${{ secrets.OSSRH_TOKEN }}
+      gpg-private-key: ${{ secrets.OSSRH_GPG_SECRET_KEY }}
+      gpg-passphrase: ${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}
