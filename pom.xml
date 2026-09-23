@@ -24,7 +24,7 @@
         <maven.compiler.target>${osslabz.java.version}</maven.compiler.target>
         <maven.compiler.release>${osslabz.java.version}</maven.compiler.release>
 
-        <lombok.version>1.18.46</lombok.version>
+        <lombok.version>1.18.48</lombok.version>
 
         <web3j.groupId>org.web3j</web3j.groupId>
         <web3j.version>4.10.0</web3j.version>
