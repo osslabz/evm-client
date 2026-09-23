@@ -4,45 +4,31 @@ on:
   push:
     branches-ignore:
       - main
+  # Pushes made with GITHUB_TOKEN start no run, so the release and the Dependabot merge
+  # dispatch this workflow on dev to build and publish what they pushed.
+  workflow_dispatch:
+
+concurrency:
+  group: build-on-push-${{ github.ref }}
+  # A newer push cancels an in-progress branch build; dev builds are never cancelled mid-run,
+  # and a newer dev push replaces only an older pending run (which already covers its predecessor's snapshot).
+  cancel-in-progress: ${{ github.ref_name != 'dev' }}
 
 jobs:
+  # Snapshots publish from dev only; releases publish through the release workflow. Central's
+  # publishing limits harden on 2026-10-01 and Sonatype does not say whether snapshots count
+  # toward them, so feature branches build without publishing. osslabz-publish carries
+  # central-publishing-maven-plugin, which routes a -SNAPSHOT to Central's snapshot repository
+  # by itself; the signature stays in osslabz-release, because Central validates a release and
+  # takes a snapshot as it comes.
   build-on-push:
-    runs-on: ubuntu-latest
-
     permissions:
       contents: read
-
-    steps:
-      - name: checkout
-        uses: actions/checkout@v5
-
-      - name: setup-jdk
-        uses: actions/setup-java@v5
-        with:
-          java-version: 21
-          distribution: 'temurin'
-          cache: maven
-          server-id: central
-          server-username: MAVEN_USERNAME
-          server-password: MAVEN_PASSWORD
-
-      # After setup-jdk, which keys its Maven cache on the poms' contents: rewriting them
-      # first would miss that cache on every branch but the integration branch.
-      - name: set-snapshot-version
-        uses: osslabz/github-actions/snapshot-version@v1
-        with:
-          default-branch: dev
-
-      # Snapshots publish from the integration branch only; `main` publishes releases through
-      # build-release-on-main-push. Central's publishing limits harden on 2026-10-01 and
-      # Sonatype does not say whether snapshots count toward them, so feature branches build
-      # without publishing. osslabz-publish carries central-publishing-maven-plugin, which
-      # routes a -SNAPSHOT to Central's snapshot repository by itself; the signature stays in
-      # osslabz-release, because Central validates a release and takes a snapshot as it comes.
-      # Dependabot's runs reach no repository secrets and so never publish either.
-      - name: maven-build-publish
-        env:
-          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-          MAVEN_GOAL: ${{ (github.ref_name == 'dev' && github.actor != 'dependabot[bot]') && 'deploy' || 'verify' }}
-        run: mvn --batch-mode --update-snapshots "$MAVEN_GOAL" -P osslabz-publish
+    uses: osslabz/github-actions/.github/workflows/build.yml@v1
+    with:
+      publish-target: central
+      publish-branches: dev
+      maven-profiles: osslabz-publish
+    secrets:
+      central-username: ${{ secrets.OSSRH_USERNAME }}
+      central-token: ${{ secrets.OSSRH_TOKEN }}
