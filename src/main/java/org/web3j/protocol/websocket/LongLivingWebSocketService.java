@@ -288,8 +288,8 @@ public class LongLivingWebSocketService implements Web3jService {
             Object reply = objectMapper.convertValue(replyJson, request.getResponseType());
             // Instead of sending a reply to a caller asynchronously we need to process it here
             // to avoid race conditions we need to modify state of this class.
-            if (reply instanceof EthSubscribe) {
-                processSubscriptionResponse(replyId, (EthSubscribe) reply);
+            if (reply instanceof EthSubscribe subscribeReply) {
+                processSubscriptionResponse(replyId, subscribeReply);
             }
 
             sendReplyToListener(request, reply);
