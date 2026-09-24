@@ -344,7 +344,7 @@ public class LongLivingWebSocketService implements Web3jService {
 
     private <T extends Notification<?>> String getSubscriptionId(BehaviorSubject<T> subject) {
         return subscriptionForId.entrySet().stream()
-                .filter(entry -> entry.getValue().getSubject() == subject)
+                .filter(entry -> subject.equals(entry.getValue().getSubject()))
                 .map(Map.Entry::getKey)
                 .findFirst()
                 .orElse(null);

@@ -11,6 +11,9 @@ import java.math.BigInteger;
 import java.net.ConnectException;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -114,6 +117,29 @@ public class LongLivingWebSocketServiceTest {
 
         Assertions.assertEquals(
                 "0x1b4", notifications.blockingFirst().getParams().getResult().getNumber());
+    }
+
+    @Test
+    public void testDisposingASubscriptionUnsubscribesFromTheNode() throws Exception {
+        BlockingQueue<JsonNode> unsubscribeRequests = new LinkedBlockingQueue<>();
+        LongLivingWebSocketService service = connectTo(new WebSocketTestServer(message -> {
+            JsonNode request = parse(message);
+            if ("eth_unsubscribe".equals(request.get("method").asText())) {
+                unsubscribeRequests.add(request);
+                return List.of();
+            }
+            return List.of(
+                    "{\"jsonrpc\":\"2.0\",\"id\":" + request.get("id") + ",\"result\":\"" + SUBSCRIPTION_ID + "\"}");
+        }));
+        Flowable<NewHeadsNotification> notifications =
+                service.subscribe(newHeadsRequest(service), "eth_unsubscribe", NewHeadsNotification.class);
+
+        notifications.subscribe().dispose();
+
+        JsonNode unsubscribeRequest = unsubscribeRequests.poll(10, TimeUnit.SECONDS);
+        Assertions.assertNotNull(unsubscribeRequest);
+        Assertions.assertEquals(
+                SUBSCRIPTION_ID, unsubscribeRequest.get("params").get(0).asText());
     }
 
     @Test
