@@ -150,6 +150,8 @@ public class LongLivingWebSocketService implements Web3jService {
         });
     }
 
+    // Unwraps the ExecutionException to rethrow the request's own failure.
+    @SuppressWarnings("PMD.PreserveStackTrace")
     @Override
     public <T extends Response> T send(Request request, Class<T> responseType) throws IOException {
         try {
@@ -181,6 +183,8 @@ public class LongLivingWebSocketService implements Web3jService {
         return result;
     }
 
+    // Unwraps the ExecutionException to rethrow the batch's own failure.
+    @SuppressWarnings("PMD.PreserveStackTrace")
     @Override
     public BatchResponse sendBatch(BatchRequest requests) throws IOException {
         try {
@@ -250,6 +254,8 @@ public class LongLivingWebSocketService implements Web3jService {
         }
     }
 
+    // The timeout reports through the request's own future; closeRequest skips answered requests.
+    @SuppressWarnings("FutureReturnValueIgnored")
     private void setRequestTimeout(long requestId) {
         executor.schedule(
                 () -> closeRequest(
