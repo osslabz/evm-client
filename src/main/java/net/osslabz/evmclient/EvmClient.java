@@ -70,8 +70,7 @@ public class EvmClient implements Closeable {
 
                 case "http":
                 case "https":
-                    HttpService httpService = new HttpService(rpcUrlString, createHttpClientWithCookieSupport());
-                    return httpService;
+                    return new HttpService(rpcUrlString, createHttpClientWithCookieSupport());
 
                 default:
                     throw new EvmClientException(
@@ -100,16 +99,13 @@ public class EvmClient implements Closeable {
             builder.addInterceptor(logging);
         }
 
-        OkHttpClient okHttpClient = builder.build();
-        return okHttpClient;
+        return builder.build();
     }
 
     public Erc20Token getTokenInfo(String contractAddress) {
 
         ERC20 erc20 = loaErc20ContractWithReadOnlyDefaults(contractAddress);
-        Erc20Token tokenInfo = getTokenInfo(erc20);
-
-        return tokenInfo;
+        return getTokenInfo(erc20);
     }
 
     public CoinBalance getBalance(String address) {
@@ -156,9 +152,7 @@ public class EvmClient implements Closeable {
     public ERC20 loaErc20ContractWithReadOnlyDefaults(String contractAddress) {
 
         TransactionManager readOnlyTransactionManager = new ReadonlyTransactionManager(web3j, null);
-        ERC20 erc20 = ERC20.load(contractAddress, this.web3j, readOnlyTransactionManager, (ContractGasProvider) null);
-
-        return erc20;
+        return ERC20.load(contractAddress, this.web3j, readOnlyTransactionManager, (ContractGasProvider) null);
     }
 
     public BigInteger getLastBlockNumber() {
@@ -204,8 +198,7 @@ public class EvmClient implements Closeable {
                     + ". Most likely not a valid ERC20 contract.");
         }
 
-        Erc20Token tokenInfo = new Erc20Token(this.chainInfo, contractAddress, name, symbol, decimals, totalSupply);
-        return tokenInfo;
+        return new Erc20Token(this.chainInfo, contractAddress, name, symbol, decimals, totalSupply);
     }
 
     public void shutdown() {
