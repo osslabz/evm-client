@@ -62,17 +62,15 @@ public class EvmClient implements Closeable {
             String protocol = rpcUrlString.substring(0, protocolEndIndex);
 
             switch (protocol) {
-                case "ws":
-                case "wss":
+                case "ws", "wss" -> {
                     LongLivingWebSocketService webSocketService = new LongLivingWebSocketService(rpcUrlString, false);
                     webSocketService.connect();
                     return webSocketService;
-
-                case "http":
-                case "https":
+                }
+                case "http", "https" -> {
                     return new HttpService(rpcUrlString, createHttpClientWithCookieSupport());
-
-                default:
+                }
+                default ->
                     throw new EvmClientException(
                             "Unknown protocol '" + protocol + "' in provided RPC URL '" + rpcUrlString + "'.");
             }
