@@ -54,6 +54,17 @@ public class LongLivingWebSocketServiceTest {
     }
 
     @Test
+    public void testSendKeepsTheInterruptFlagWhenInterrupted() throws Exception {
+        LongLivingWebSocketService service = connectTo(new WebSocketTestServer(message -> List.of()));
+        Request<?, EthBlockNumber> request = blockNumberRequest(service);
+
+        Thread.currentThread().interrupt();
+        Assertions.assertThrows(IOException.class, () -> service.send(request, EthBlockNumber.class));
+
+        Assertions.assertTrue(Thread.interrupted());
+    }
+
+    @Test
     public void testSendBatchReturnsTheRepliesInRequestOrder() throws Exception {
         LongLivingWebSocketService service =
                 connectTo(new WebSocketTestServer(reply(request -> "0x" + request.get("id"))));
@@ -69,6 +80,17 @@ public class LongLivingWebSocketServiceTest {
         Assertions.assertEquals(7, response.getResponses().get(0).getId());
         Assertions.assertEquals(
                 BigInteger.valueOf(9), ((EthBlockNumber) response.getResponses().get(1)).getBlockNumber());
+    }
+
+    @Test
+    public void testSendBatchKeepsTheInterruptFlagWhenInterrupted() throws Exception {
+        LongLivingWebSocketService service = connectTo(new WebSocketTestServer(message -> List.of()));
+        BatchRequest batch = new BatchRequest(service).add(blockNumberRequest(service));
+
+        Thread.currentThread().interrupt();
+        Assertions.assertThrows(IOException.class, () -> service.sendBatch(batch));
+
+        Assertions.assertTrue(Thread.interrupted());
     }
 
     @Test

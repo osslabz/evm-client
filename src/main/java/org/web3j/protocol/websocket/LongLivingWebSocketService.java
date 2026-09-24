@@ -155,7 +155,7 @@ public class LongLivingWebSocketService implements Web3jService {
         try {
             return sendAsync(request, responseType).get();
         } catch (InterruptedException e) {
-            Thread.interrupted();
+            Thread.currentThread().interrupt();
             throw new IOException("Interrupted WebSocket request", e);
         } catch (ExecutionException e) {
             if (e.getCause() instanceof IOException) {
@@ -186,7 +186,7 @@ public class LongLivingWebSocketService implements Web3jService {
         try {
             return sendBatchAsync(requests).get();
         } catch (InterruptedException e) {
-            Thread.interrupted();
+            Thread.currentThread().interrupt();
             throw new IOException("Interrupted WebSocket batch requests", e);
         } catch (ExecutionException e) {
             if (e.getCause() instanceof IOException) {
