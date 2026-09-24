@@ -259,9 +259,11 @@ public class LongLivingWebSocketService implements Web3jService {
     }
 
     void closeRequest(long requestId, Exception e) {
-        CompletableFuture result = requestForId.get(requestId).getOnReply();
-        requestForId.remove(requestId);
-        result.completeExceptionally(e);
+        WebSocketRequest<?> request = requestForId.remove(requestId);
+        // The timeout scheduled for every request fires after its reply too.
+        if (request != null) {
+            request.getOnReply().completeExceptionally(e);
+        }
     }
 
     void onWebSocketMessage(String messageStr) throws IOException {

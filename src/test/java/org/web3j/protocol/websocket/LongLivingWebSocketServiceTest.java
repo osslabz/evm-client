@@ -65,6 +65,15 @@ public class LongLivingWebSocketServiceTest {
     }
 
     @Test
+    public void testTimeoutOfAnAnsweredRequestIsIgnored() throws Exception {
+        LongLivingWebSocketService service = connectTo(new WebSocketTestServer(reply(request -> "0x2a")));
+        Request<?, EthBlockNumber> request = blockNumberRequest(service);
+        service.send(request, EthBlockNumber.class);
+
+        Assertions.assertDoesNotThrow(() -> service.closeRequest(request.getId(), new IOException("timed out")));
+    }
+
+    @Test
     public void testSendBatchReturnsTheRepliesInRequestOrder() throws Exception {
         LongLivingWebSocketService service =
                 connectTo(new WebSocketTestServer(reply(request -> "0x" + request.get("id"))));
