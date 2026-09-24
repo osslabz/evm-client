@@ -205,8 +205,6 @@ public class EvmClient implements Closeable {
 
     /**
      * Alias for {@link #shutdown()} for those who fancy a closable interface.
-     *
-     * @throws IOException
      */
     @Override
     public void close() throws IOException {
