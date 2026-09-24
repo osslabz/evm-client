@@ -29,6 +29,9 @@
         <web3j.groupId>org.web3j</web3j.groupId>
         <web3j.version>4.10.0</web3j.version>
         <okhttp3.version>4.12.0</okhttp3.version>
+
+        <!-- Tests tagged live call a public RPC node. -Dsurefire.excluded.groups= runs them. -->
+        <surefire.excluded.groups>live</surefire.excluded.groups>
     </properties>
 
     <licenses>
@@ -312,6 +315,13 @@
                             <version>${lombok.version}</version>
                         </path>
                     </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludedGroups>${surefire.excluded.groups}</excludedGroups>
                 </configuration>
             </plugin>
             <plugin>

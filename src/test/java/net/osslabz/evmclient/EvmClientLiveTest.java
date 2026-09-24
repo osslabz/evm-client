@@ -5,10 +5,12 @@ import net.osslabz.evmclient.dto.Chain;
 import net.osslabz.evmclient.dto.CoinBalance;
 import net.osslabz.evmclient.dto.Erc20Token;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 @Slf4j
-public class EvmClientTest {
+@Tag("live")
+public class EvmClientLiveTest {
 
     public static final String CONTRACT_ADDRESS_WRAPPED_AVAX_ON_AVALANCHE =
             "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7";
