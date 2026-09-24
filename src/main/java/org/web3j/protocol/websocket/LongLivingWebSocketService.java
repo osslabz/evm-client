@@ -431,8 +431,10 @@ public class LongLivingWebSocketService implements Web3jService {
                 try {
                     return Long.parseLong(idField.asText());
                 } catch (NumberFormatException e) {
-                    throw new IOException(String.format(
-                            "Found Textual 'id' that cannot be casted to long. Input : '%s'", idField.asText()));
+                    throw new IOException(
+                            String.format(
+                                    "Found Textual 'id' that cannot be casted to long. Input : '%s'", idField.asText()),
+                            e);
                 }
             } else {
                 throw new IOException(String.format("'id' expected to be long, but it is: '%s'", idField.asText()));

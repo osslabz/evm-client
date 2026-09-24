@@ -158,6 +158,17 @@ public class LongLivingWebSocketServiceTest {
     }
 
     @Test
+    public void testAReplyWithAnUnreadableIdIsRejectedWithItsCause() {
+        this.openService = new LongLivingWebSocketService("ws://127.0.0.1:1/", false);
+
+        IOException exception = Assertions.assertThrows(
+                IOException.class,
+                () -> this.openService.onWebSocketMessage("{\"jsonrpc\":\"2.0\",\"id\":\"one\",\"result\":\"0x1\"}"));
+
+        Assertions.assertInstanceOf(NumberFormatException.class, exception.getCause());
+    }
+
+    @Test
     public void testConnectFailsWhenNoServerListens() throws Exception {
         String url;
         try (WebSocketTestServer server = new WebSocketTestServer(message -> List.of())) {
