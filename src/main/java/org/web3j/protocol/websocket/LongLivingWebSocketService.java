@@ -280,6 +280,7 @@ public class LongLivingWebSocketService implements Web3jService {
         }
     }
 
+    // requestForId mixes response types; each reply is converted to its own request's type.
     @SuppressWarnings("unchecked")
     private void processRequestReply(String replyStr, JsonNode replyJson) throws IOException {
         long replyId = getReplyId(replyJson);
@@ -320,6 +321,7 @@ public class LongLivingWebSocketService implements Web3jService {
         }
     }
 
+    // subscriptionRequestForId mixes notification types; each entry carries its own subject and type.
     @SuppressWarnings("unchecked")
     private void processSubscriptionResponse(long replyId, EthSubscribe reply) throws IOException {
         WebSocketSubscription subscription = subscriptionRequestForId.get(replyId);
@@ -358,6 +360,7 @@ public class LongLivingWebSocketService implements Web3jService {
                 new IOException(String.format("Subscription request failed with error: %s", error.getMessage())));
     }
 
+    // The reply was converted to the response type the request's future expects.
     @SuppressWarnings("unchecked")
     private void sendReplyToListener(WebSocketRequest request, Object reply) {
         request.getOnReply().complete(reply);
@@ -385,6 +388,7 @@ public class LongLivingWebSocketService implements Web3jService {
         return replyJson.get("params").get("subscription").asText();
     }
 
+    // The event is converted to the notification type the subscription's subject expects.
     @SuppressWarnings("unchecked")
     private void sendEventToSubscriber(JsonNode replyJson, WebSocketSubscription subscription) {
         Object event = objectMapper.convertValue(replyJson, subscription.getResponseType());
