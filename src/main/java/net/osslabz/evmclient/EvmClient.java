@@ -1,11 +1,17 @@
 package net.osslabz.evmclient;
 
+import java.io.Closeable;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.net.ConnectException;
+import java.time.Duration;
+import java.util.Collections;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import net.osslabz.evmclient.dto.CoinBalance;
-import net.osslabz.evmclient.dto.Erc20TokenBalance;
 import net.osslabz.evmclient.dto.Chain;
+import net.osslabz.evmclient.dto.CoinBalance;
 import net.osslabz.evmclient.dto.Erc20Token;
+import net.osslabz.evmclient.dto.Erc20TokenBalance;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -19,13 +25,6 @@ import org.web3j.tx.ReadonlyTransactionManager;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.math.BigInteger;
-import java.net.ConnectException;
-import java.time.Duration;
-import java.util.Collections;
-
 @Slf4j
 @Getter
 public class EvmClient implements Closeable {
@@ -33,7 +32,6 @@ public class EvmClient implements Closeable {
     private final Chain chainInfo;
 
     private final Web3j web3j;
-
 
     public EvmClient(Chain chain) {
         this(chain, createWeb3Service(chain.getRpcUrl()));
@@ -57,7 +55,8 @@ public class EvmClient implements Closeable {
             int protocolEndIndex = rpcUrlString.indexOf("://");
 
             if (protocolEndIndex <= 1) {
-                throw new EvmClientException("Can't instantiate Web3jService because the provided RPC URL '" + rpcUrlString + "' is invalid.");
+                throw new EvmClientException("Can't instantiate Web3jService because the provided RPC URL '"
+                        + rpcUrlString + "' is invalid.");
             }
 
             String protocol = rpcUrlString.substring(0, protocolEndIndex);
@@ -75,7 +74,8 @@ public class EvmClient implements Closeable {
                     return httpService;
 
                 default:
-                    throw new EvmClientException("Unknown protocol '" + protocol + "' in provided RPC URL '" + rpcUrlString + "'.");
+                    throw new EvmClientException(
+                            "Unknown protocol '" + protocol + "' in provided RPC URL '" + rpcUrlString + "'.");
             }
         } catch (ConnectException e) {
 
@@ -104,7 +104,6 @@ public class EvmClient implements Closeable {
         return okHttpClient;
     }
 
-
     public Erc20Token getTokenInfo(String contractAddress) {
 
         ERC20 erc20 = loaErc20ContractWithReadOnlyDefaults(contractAddress);
@@ -113,17 +112,18 @@ public class EvmClient implements Closeable {
         return tokenInfo;
     }
 
-
     public CoinBalance getBalance(String address) {
 
         try {
-            BigInteger balance = this.web3j.ethGetBalance(address, DefaultBlockParameterName.LATEST).send().getBalance();
+            BigInteger balance = this.web3j
+                    .ethGetBalance(address, DefaultBlockParameterName.LATEST)
+                    .send()
+                    .getBalance();
             return new CoinBalance(this.chainInfo, balance);
         } catch (IOException e) {
             throw new EvmClientException(e);
         }
     }
-
 
     public Erc20TokenBalance getTokenBalance(String contractAddress, String address) {
 
@@ -138,10 +138,11 @@ public class EvmClient implements Closeable {
         }
     }
 
-
     public Erc20TokenBalance getTokenBalance(Erc20Token tokenInfo, String address) {
         if (!this.chainInfo.equals(tokenInfo.getChain())) {
-            throw new IllegalArgumentException("This instance of " + this.getClass().getName() + " is bound to chain " + this.chainInfo + ", the provided token is from chain " + tokenInfo.getChain() + ".");
+            throw new IllegalArgumentException(
+                    "This instance of " + this.getClass().getName() + " is bound to chain " + this.chainInfo
+                            + ", the provided token is from chain " + tokenInfo.getChain() + ".");
         }
         try {
             ERC20 erc20 = loaErc20ContractWithReadOnlyDefaults(tokenInfo.getContractAddress());
@@ -152,7 +153,6 @@ public class EvmClient implements Closeable {
         }
     }
 
-
     public ERC20 loaErc20ContractWithReadOnlyDefaults(String contractAddress) {
 
         TransactionManager readOnlyTransactionManager = new ReadonlyTransactionManager(web3j, null);
@@ -161,7 +161,6 @@ public class EvmClient implements Closeable {
         return erc20;
     }
 
-
     public BigInteger getLastBlockNumber() {
         try {
             return this.web3j.ethBlockNumber().send().getBlockNumber();
@@ -169,7 +168,6 @@ public class EvmClient implements Closeable {
             throw new EvmClientException(e);
         }
     }
-
 
     public Erc20Token getTokenInfo(ERC20 erc20) {
 
@@ -202,20 +200,17 @@ public class EvmClient implements Closeable {
         }
 
         if (name == null && symbol == null && decimals == null && totalSupply == null) {
-            throw new EvmClientException("Couldn't fetch any token info for " + contractAddress + ". Most likely not a valid ERC20 contract.");
+            throw new EvmClientException("Couldn't fetch any token info for " + contractAddress
+                    + ". Most likely not a valid ERC20 contract.");
         }
-
 
         Erc20Token tokenInfo = new Erc20Token(this.chainInfo, contractAddress, name, symbol, decimals, totalSupply);
         return tokenInfo;
-
     }
-
 
     public void shutdown() {
         this.web3j.shutdown();
     }
-
 
     /**
      * Alias for {@link #shutdown()} for those who fancy a closable interface.

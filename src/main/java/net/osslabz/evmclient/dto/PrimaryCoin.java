@@ -1,11 +1,9 @@
 package net.osslabz.evmclient.dto;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-
 import java.io.Serializable;
 import java.math.BigInteger;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Represents the primary coin of a blockchain protocol, e.g. Ether (ETH) on Ethereum or AVAX on Avalanche.
@@ -22,17 +20,14 @@ public class PrimaryCoin implements Serializable {
 
     private BigInteger decimals;
 
-
     public PrimaryCoin(String name) {
         this(name, name);
     }
-
 
     public PrimaryCoin(String name, String symbol) {
         this.name = name;
         this.symbol = symbol;
     }
-
 
     public PrimaryCoin(String name, String symbol, BigInteger decimals) {
         this.name = name;
@@ -40,8 +35,8 @@ public class PrimaryCoin implements Serializable {
         this.decimals = decimals;
     }
 
-
     public String toString() {
-        return this.getClass().getName() + "(name=" + this.name + ", symbol=" + this.symbol + ", decimals=" + this.decimals + ")";
+        return this.getClass().getName() + "(name=" + this.name + ", symbol=" + this.symbol + ", decimals="
+                + this.decimals + ")";
     }
 }

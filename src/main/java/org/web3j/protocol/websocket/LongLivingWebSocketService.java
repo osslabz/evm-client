@@ -12,6 +12,14 @@
  */
 package org.web3j.protocol.websocket;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Flowable;
+import io.reactivex.subjects.BehaviorSubject;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.URI;
@@ -28,18 +36,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.Flowable;
-import io.reactivex.subjects.BehaviorSubject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.web3j.protocol.ObjectMapperFactory;
 import org.web3j.protocol.Web3jService;
 import org.web3j.protocol.core.BatchRequest;
@@ -80,8 +78,7 @@ public class LongLivingWebSocketService implements Web3jService {
     private Map<Long, WebSocketRequest<?>> requestForId = new ConcurrentHashMap<>();
     // Map of a sent subscription request id to objects necessary to process
     // subscription events
-    private Map<Long, WebSocketSubscription<?>> subscriptionRequestForId =
-            new ConcurrentHashMap<>();
+    private Map<Long, WebSocketSubscription<?>> subscriptionRequestForId = new ConcurrentHashMap<>();
     // Map of a subscription id to objects necessary to process incoming events
     private Map<String, WebSocketSubscription<?>> subscriptionForId = new ConcurrentHashMap<>();
 
@@ -94,9 +91,7 @@ public class LongLivingWebSocketService implements Web3jService {
     }
 
     LongLivingWebSocketService(
-            WebSocketClient webSocketClient,
-            ScheduledExecutorService executor,
-            boolean includeRawResponses) {
+            WebSocketClient webSocketClient, ScheduledExecutorService executor, boolean includeRawResponses) {
         this.webSocketClient = webSocketClient;
         this.executor = executor;
         this.objectMapper = ObjectMapperFactory.getObjectMapper(includeRawResponses);
@@ -124,10 +119,7 @@ public class LongLivingWebSocketService implements Web3jService {
     }
 
     private void connectToWebSocket() throws InterruptedException, ConnectException {
-        boolean connected =
-                shouldReConnect
-                        ? webSocketClient.reconnectBlocking()
-                        : webSocketClient.connectBlocking();
+        boolean connected = shouldReConnect ? webSocketClient.reconnectBlocking() : webSocketClient.connectBlocking();
 
         shouldReConnect = true;
         if (!connected) {
@@ -136,28 +128,26 @@ public class LongLivingWebSocketService implements Web3jService {
         webSocketClient.setConnectionLostTimeout(15);
     }
 
-    private void setWebSocketListener(
-            Consumer<String> onMessage, Consumer<Throwable> onError, Runnable onClose) {
-        webSocketClient.setListener(
-                new WebSocketListener() {
-                    @Override
-                    public void onMessage(String message) throws IOException {
-                        onWebSocketMessage(message);
-                        onMessage.accept(message);
-                    }
+    private void setWebSocketListener(Consumer<String> onMessage, Consumer<Throwable> onError, Runnable onClose) {
+        webSocketClient.setListener(new WebSocketListener() {
+            @Override
+            public void onMessage(String message) throws IOException {
+                onWebSocketMessage(message);
+                onMessage.accept(message);
+            }
 
-                    @Override
-                    public void onError(Exception e) {
-                        log.error("Received error from a WebSocket connection", e);
-                        onError.accept(e);
-                    }
+            @Override
+            public void onError(Exception e) {
+                log.error("Received error from a WebSocket connection", e);
+                onError.accept(e);
+            }
 
-                    @Override
-                    public void onClose() {
-                        onWebSocketClose();
-                        onClose.run();
-                    }
-                });
+            @Override
+            public void onClose() {
+                onWebSocketClose();
+                onClose.run();
+            }
+        });
     }
 
     @Override
@@ -177,8 +167,7 @@ public class LongLivingWebSocketService implements Web3jService {
     }
 
     @Override
-    public <T extends Response> CompletableFuture<T> sendAsync(
-            Request request, Class<T> responseType) {
+    public <T extends Response> CompletableFuture<T> sendAsync(Request request, Class<T> responseType) {
 
         CompletableFuture<T> result = new CompletableFuture<>();
         long requestId = request.getId();
@@ -218,8 +207,7 @@ public class LongLivingWebSocketService implements Web3jService {
         long originId = firstRequest.getId();
         requests.getRequests().get(0).setId(requestId);
 
-        requestForId.put(
-                requestId, new WebSocketRequests(result, requests.getRequests(), originId));
+        requestForId.put(requestId, new WebSocketRequests(result, requests.getRequests(), originId));
 
         try {
             sendBatchRequest(requests, requestId);
@@ -238,8 +226,7 @@ public class LongLivingWebSocketService implements Web3jService {
         setRequestTimeout(requestId);
     }
 
-    private void sendBatchRequest(BatchRequest request, long requestId)
-            throws JsonProcessingException {
+    private void sendBatchRequest(BatchRequest request, long requestId) throws JsonProcessingException {
         String payload = objectMapper.writeValueAsString(request.getRequests());
         forceOpenConnection();
         log.debug("Sending batch request: {}", payload);
@@ -247,7 +234,7 @@ public class LongLivingWebSocketService implements Web3jService {
         setRequestTimeout(requestId);
     }
 
-    private void forceOpenConnection(){
+    private void forceOpenConnection() {
         if (!webSocketClient.isOpen()) {
             log.warn("Websocket identified as closed during send, trying to reconnect...");
             try {
@@ -265,11 +252,8 @@ public class LongLivingWebSocketService implements Web3jService {
 
     private void setRequestTimeout(long requestId) {
         executor.schedule(
-                () ->
-                        closeRequest(
-                                requestId,
-                                new IOException(
-                                        String.format("Request with id %d timed out", requestId))),
+                () -> closeRequest(
+                        requestId, new IOException(String.format("Request with id %d timed out", requestId))),
                 REQUEST_TIMEOUT,
                 TimeUnit.SECONDS);
     }
@@ -323,9 +307,8 @@ public class LongLivingWebSocketService implements Web3jService {
             List<Response<?>> responses = new ArrayList<>(replyJson.size());
 
             for (int i = 0; i < replyJson.size(); i++) {
-                Response<?> response =
-                        objectMapper.treeToValue(
-                                replyJson.get(i), requests.get(i).getResponseType());
+                Response<?> response = objectMapper.treeToValue(
+                        replyJson.get(i), requests.get(i).getResponseType());
                 responses.add(response);
             }
 
@@ -338,8 +321,7 @@ public class LongLivingWebSocketService implements Web3jService {
     @SuppressWarnings("unchecked")
     private void processSubscriptionResponse(long replyId, EthSubscribe reply) throws IOException {
         WebSocketSubscription subscription = subscriptionRequestForId.get(replyId);
-        processSubscriptionResponse(
-                reply, subscription.getSubject(), subscription.getResponseType());
+        processSubscriptionResponse(reply, subscription.getSubject(), subscription.getResponseType());
     }
 
     private <T extends Notification<?>> void processSubscriptionResponse(
@@ -355,8 +337,7 @@ public class LongLivingWebSocketService implements Web3jService {
             BehaviorSubject<T> subject, Class<T> responseType, EthSubscribe subscriptionReply) {
         log.debug("Subscribed to RPC events with id {}", subscriptionReply.getSubscriptionId());
         subscriptionForId.put(
-                subscriptionReply.getSubscriptionId(),
-                new WebSocketSubscription<>(subject, responseType));
+                subscriptionReply.getSubscriptionId(), new WebSocketSubscription<>(subject, responseType));
     }
 
     private <T extends Notification<?>> String getSubscriptionId(BehaviorSubject<T> subject) {
@@ -372,9 +353,7 @@ public class LongLivingWebSocketService implements Web3jService {
         Response.Error error = subscriptionReply.getError();
         log.error("Subscription request returned error: {}", error.getMessage());
         subject.onError(
-                new IOException(
-                        String.format(
-                                "Subscription request failed with error: %s", error.getMessage())));
+                new IOException(String.format("Subscription request failed with error: %s", error.getMessage())));
     }
 
     @SuppressWarnings("unchecked")
@@ -382,15 +361,10 @@ public class LongLivingWebSocketService implements Web3jService {
         request.getOnReply().complete(reply);
     }
 
-    private void sendExceptionToListener(
-            String replyStr, WebSocketRequest request, IllegalArgumentException e) {
+    private void sendExceptionToListener(String replyStr, WebSocketRequest request, IllegalArgumentException e) {
         request.getOnReply()
-                .completeExceptionally(
-                        new IOException(
-                                String.format(
-                                        "Failed to parse '%s' as type %s",
-                                        replyStr, request.getResponseType()),
-                                e));
+                .completeExceptionally(new IOException(
+                        String.format("Failed to parse '%s' as type %s", replyStr, request.getResponseType()), e));
     }
 
     private void processSubscriptionEvent(String replyStr, JsonNode replyJson) {
@@ -437,8 +411,7 @@ public class LongLivingWebSocketService implements Web3jService {
 
     private WebSocketRequest getAndRemoveRequest(long id) throws IOException {
         if (!requestForId.containsKey(id)) {
-            throw new IOException(
-                    String.format("Received reply for unexpected request id: %d", id));
+            throw new IOException(String.format("Received reply for unexpected request id: %d", id));
         }
         WebSocketRequest request = requestForId.get(id);
         requestForId.remove(id);
@@ -456,15 +429,11 @@ public class LongLivingWebSocketService implements Web3jService {
                 try {
                     return Long.parseLong(idField.asText());
                 } catch (NumberFormatException e) {
-                    throw new IOException(
-                            String.format(
-                                    "Found Textual 'id' that cannot be casted to long. Input : '%s'",
-                                    idField.asText()));
+                    throw new IOException(String.format(
+                            "Found Textual 'id' that cannot be casted to long. Input : '%s'", idField.asText()));
                 }
             } else {
-                throw new IOException(
-                        String.format(
-                                "'id' expected to be long, but it is: '%s'", idField.asText()));
+                throw new IOException(String.format("'id' expected to be long, but it is: '%s'", idField.asText()));
             }
         }
 
@@ -500,8 +469,7 @@ public class LongLivingWebSocketService implements Web3jService {
     private <T extends Notification<?>> void subscribeToEventsStream(
             Request request, BehaviorSubject<T> subject, Class<T> responseType) {
 
-        subscriptionRequestForId.put(
-                request.getId(), new WebSocketSubscription<>(subject, responseType));
+        subscriptionRequestForId.put(request.getId(), new WebSocketSubscription<>(subject, responseType));
         try {
             send(request, EthSubscribe.class);
         } catch (IOException e) {
@@ -510,8 +478,7 @@ public class LongLivingWebSocketService implements Web3jService {
         }
     }
 
-    private <T extends Notification<?>> void closeSubscription(
-            BehaviorSubject<T> subject, String unsubscribeMethod) {
+    private <T extends Notification<?>> void closeSubscription(BehaviorSubject<T> subject, String unsubscribeMethod) {
         String subscriptionId = getSubscriptionId(subject);
         if (subscriptionId != null) {
             subscriptionForId.remove(subscriptionId);
@@ -523,27 +490,16 @@ public class LongLivingWebSocketService implements Web3jService {
 
     private void unsubscribeFromEventsStream(String subscriptionId, String unsubscribeMethod) {
         sendAsync(unsubscribeRequest(subscriptionId, unsubscribeMethod), EthUnsubscribe.class)
-                .thenAccept(
-                        ethUnsubscribe ->
-                                log.debug(
-                                        "Successfully unsubscribed from subscription with id {}",
-                                        subscriptionId))
-                .exceptionally(
-                        throwable -> {
-                            log.error(
-                                    "Failed to unsubscribe from subscription with id {}",
-                                    subscriptionId);
-                            return null;
-                        });
+                .thenAccept(ethUnsubscribe ->
+                        log.debug("Successfully unsubscribed from subscription with id {}", subscriptionId))
+                .exceptionally(throwable -> {
+                    log.error("Failed to unsubscribe from subscription with id {}", subscriptionId);
+                    return null;
+                });
     }
 
-    private Request<String, EthUnsubscribe> unsubscribeRequest(
-            String subscriptionId, String unsubscribeMethod) {
-        return new Request<>(
-                unsubscribeMethod,
-                Collections.singletonList(subscriptionId),
-                this,
-                EthUnsubscribe.class);
+    private Request<String, EthUnsubscribe> unsubscribeRequest(String subscriptionId, String unsubscribeMethod) {
+        return new Request<>(unsubscribeMethod, Collections.singletonList(subscriptionId), this, EthUnsubscribe.class);
     }
 
     @Override
@@ -560,21 +516,14 @@ public class LongLivingWebSocketService implements Web3jService {
     private void closeOutstandingRequests() {
         requestForId
                 .values()
-                .forEach(
-                        request ->
-                                request.getOnReply()
-                                        .completeExceptionally(
-                                                new IOException("Connection was closed")));
+                .forEach(request ->
+                        request.getOnReply().completeExceptionally(new IOException("Connection was closed")));
     }
 
     private void closeOutstandingSubscriptions() {
         subscriptionForId
                 .values()
-                .forEach(
-                        subscription ->
-                                subscription
-                                        .getSubject()
-                                        .onError(new IOException("Connection was closed")));
+                .forEach(subscription -> subscription.getSubject().onError(new IOException("Connection was closed")));
     }
 
     // Method visible for unit-tests

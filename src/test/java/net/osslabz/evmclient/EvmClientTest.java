@@ -10,7 +10,8 @@ import org.junit.jupiter.api.Test;
 @Slf4j
 public class EvmClientTest {
 
-    public static final String CONTRACT_ADDRESS_WRAPPED_AVAX_ON_AVALANCHE = "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7";
+    public static final String CONTRACT_ADDRESS_WRAPPED_AVAX_ON_AVALANCHE =
+            "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7";
 
     @Test
     public void testGetTokenInfo() throws Exception {

@@ -1,11 +1,10 @@
 package net.osslabz.evmclient;
 
+import java.util.List;
 import okhttp3.Cookie;
 import okhttp3.HttpUrl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
 
 public class InMemoryCookieJarTest {
 
@@ -21,7 +20,8 @@ public class InMemoryCookieJarTest {
     @Test
     public void testExpiredCookiesAreNotReturned() {
         InMemoryCookieJar cookieJar = new InMemoryCookieJar();
-        cookieJar.saveFromResponse(URL, List.of(cookie("expired", "api.avax.network", System.currentTimeMillis() - 1000)));
+        cookieJar.saveFromResponse(
+                URL, List.of(cookie("expired", "api.avax.network", System.currentTimeMillis() - 1000)));
 
         Assertions.assertTrue(cookieJar.loadForRequest(URL).isEmpty());
     }
@@ -30,10 +30,11 @@ public class InMemoryCookieJarTest {
     public void testOnlyCookiesMatchingTheUrlAreReturned() {
         InMemoryCookieJar cookieJar = new InMemoryCookieJar();
         long expiresAt = System.currentTimeMillis() + 60_000;
-        cookieJar.saveFromResponse(URL, List.of(
-                cookie("session", "api.avax.network", expiresAt),
-                cookie("other", "cloudflare-eth.com", expiresAt)
-        ));
+        cookieJar.saveFromResponse(
+                URL,
+                List.of(
+                        cookie("session", "api.avax.network", expiresAt),
+                        cookie("other", "cloudflare-eth.com", expiresAt)));
 
         List<Cookie> cookies = cookieJar.loadForRequest(URL);
 

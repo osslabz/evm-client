@@ -1,20 +1,32 @@
 package net.osslabz.evmclient.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
-
 import java.io.Serializable;
+import lombok.Data;
 
 @Data
 public class Chain implements Serializable {
 
     // Chain Details: https://support.avax.network/en/articles/4626956-how-do-i-set-up-metamask-on-avalanche
-    public static final Chain AVALANCHE_MAIN = new Chain("Avalanche Network", "AVAX", NetworkType.MAIN, 43114, "https://api.avax.network/ext/bc/C/rpc", "https://snowtrace.io/");
+    public static final Chain AVALANCHE_MAIN = new Chain(
+            "Avalanche Network",
+            "AVAX",
+            NetworkType.MAIN,
+            43114,
+            "https://api.avax.network/ext/bc/C/rpc",
+            "https://snowtrace.io/");
 
     // Chain Details: https://docs.linkpool.io/docs/public_rpc
-    public static final Chain ETHEREUM_MAIN = new Chain("Ethereum Network", "ETH", NetworkType.MAIN, 1, "https://cloudflare-eth.com/", "https://etherscan.io/");
+    public static final Chain ETHEREUM_MAIN = new Chain(
+            "Ethereum Network", "ETH", NetworkType.MAIN, 1, "https://cloudflare-eth.com/", "https://etherscan.io/");
 
-    public static final Chain BINANCE_SMART_CHAIN_MAIN = new Chain("Binance Smart Chain", "BNB", NetworkType.MAIN, 56, "https://bsc-dataseed.binance.org/", "https://bscscan.com");
+    public static final Chain BINANCE_SMART_CHAIN_MAIN = new Chain(
+            "Binance Smart Chain",
+            "BNB",
+            NetworkType.MAIN,
+            56,
+            "https://bsc-dataseed.binance.org/",
+            "https://bscscan.com");
 
     private final String name;
 
@@ -38,8 +50,8 @@ public class Chain implements Serializable {
         this.coin = new PrimaryCoin(symbol);
     }
 
-
     public String toString() {
-        return this.getClass().getName() + "(name=" + this.name + ", type=" + this.type + ", id=" + this.id + ", coin=" + this.coin + ")";
+        return this.getClass().getName() + "(name=" + this.name + ", type=" + this.type + ", id=" + this.id + ", coin="
+                + this.coin + ")";
     }
 }
