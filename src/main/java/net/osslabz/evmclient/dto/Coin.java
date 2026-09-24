@@ -29,6 +29,7 @@ public class Coin extends PrimaryCoin {
         this.chain = chain;
     }
 
+    @Override
     public String toString() {
         return super.toString() + "[chain= " + this.chain + "]";
     }

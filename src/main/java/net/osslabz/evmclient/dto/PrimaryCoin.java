@@ -35,6 +35,7 @@ public class PrimaryCoin implements Serializable {
         this.decimals = decimals;
     }
 
+    @Override
     public String toString() {
         return this.getClass().getName() + "(name=" + this.name + ", symbol=" + this.symbol + ", decimals="
                 + this.decimals + ")";

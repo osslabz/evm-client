@@ -50,6 +50,7 @@ public class Chain implements Serializable {
         this.coin = new PrimaryCoin(symbol);
     }
 
+    @Override
     public String toString() {
         return this.getClass().getName() + "(name=" + this.name + ", type=" + this.type + ", id=" + this.id + ", coin="
                 + this.coin + ")";
