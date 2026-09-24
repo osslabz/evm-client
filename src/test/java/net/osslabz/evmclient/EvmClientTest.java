@@ -1,0 +1,193 @@
+package net.osslabz.evmclient;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.net.ConnectException;
+import java.util.List;
+import java.util.Locale;
+import net.osslabz.evmclient.dto.Chain;
+import net.osslabz.evmclient.dto.CoinBalance;
+import net.osslabz.evmclient.dto.Erc20Token;
+import net.osslabz.evmclient.dto.Erc20TokenBalance;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.TypeEncoder;
+import org.web3j.abi.datatypes.Utf8String;
+import org.web3j.abi.datatypes.generated.Uint256;
+import org.web3j.protocol.http.HttpService;
+
+public class EvmClientTest {
+
+    private static final String CONTRACT_ADDRESS = "0xB31F66AA3C1E785363F0875A1B74E27B85FD66C7";
+
+    private static final String HOLDER_ADDRESS = "0x81c36bab8db9c25e6736427c13e183b881cb00bd";
+
+    private static final BigInteger TOTAL_SUPPLY = new BigInteger("1000000000000000000000000");
+
+    private static final BigInteger HOLDER_TOKEN_BALANCE = new BigInteger("2500000000000000000");
+
+    @Test
+    public void testGetBalanceReturnsTheBalanceInTheChainsCoin() throws IOException {
+        try (JsonRpcTestServer server = new JsonRpcTestServer(request -> "0xde0b6b3a7640000");
+                EvmClient evmClient = new EvmClient(Chain.AVALANCHE_MAIN, server.url())) {
+
+            CoinBalance balance = evmClient.getBalance(HOLDER_ADDRESS);
+
+            Assertions.assertEquals(new BigInteger("1000000000000000000"), balance.getBalance());
+            Assertions.assertEquals("AVAX", balance.getCoin().getSymbol());
+        }
+    }
+
+    @Test
+    public void testGetBalanceWrapsAConnectionFailure() throws IOException {
+        try (EvmClient evmClient = new EvmClient(Chain.AVALANCHE_MAIN, unreachableUrl())) {
+
+            EvmClientException exception =
+                    Assertions.assertThrows(EvmClientException.class, () -> evmClient.getBalance(HOLDER_ADDRESS));
+
+            Assertions.assertInstanceOf(ConnectException.class, exception.getCause());
+        }
+    }
+
+    @Test
+    public void testGetLastBlockNumberReturnsTheNodesBlockNumber() throws IOException {
+        try (JsonRpcTestServer server = new JsonRpcTestServer(request -> "0x2a");
+                EvmClient evmClient = new EvmClient(Chain.AVALANCHE_MAIN, server.url())) {
+
+            Assertions.assertEquals(BigInteger.valueOf(42), evmClient.getLastBlockNumber());
+        }
+    }
+
+    @Test
+    public void testGetLastBlockNumberWrapsAConnectionFailure() throws IOException {
+        try (EvmClient evmClient = new EvmClient(Chain.AVALANCHE_MAIN, unreachableUrl())) {
+
+            Assertions.assertThrows(EvmClientException.class, evmClient::getLastBlockNumber);
+        }
+    }
+
+    @Test
+    public void testGetTokenInfoReadsTheErc20Metadata() throws IOException {
+        try (JsonRpcTestServer server = new JsonRpcTestServer(EvmClientTest::erc20Contract);
+                EvmClient evmClient = new EvmClient(Chain.AVALANCHE_MAIN, server.url())) {
+
+            Erc20Token token = evmClient.getTokenInfo(CONTRACT_ADDRESS);
+
+            Assertions.assertEquals("Wrapped AVAX", token.getName());
+            Assertions.assertEquals("WAVAX", token.getSymbol());
+            Assertions.assertEquals(BigInteger.valueOf(18), token.getDecimals());
+            Assertions.assertEquals(TOTAL_SUPPLY, token.getTotalSupply());
+            Assertions.assertEquals(CONTRACT_ADDRESS.toLowerCase(Locale.ROOT), token.getContractAddress());
+            Assertions.assertEquals(Chain.AVALANCHE_MAIN, token.getChain());
+        }
+    }
+
+    @Test
+    public void testGetTokenInfoFailsForAnAddressWithoutAnErc20Contract() throws IOException {
+        try (JsonRpcTestServer server = new JsonRpcTestServer(request -> "0x");
+                EvmClient evmClient = new EvmClient(Chain.AVALANCHE_MAIN, server.url())) {
+
+            EvmClientException exception =
+                    Assertions.assertThrows(EvmClientException.class, () -> evmClient.getTokenInfo(CONTRACT_ADDRESS));
+
+            Assertions.assertTrue(exception.getMessage().startsWith("Couldn't fetch any token info"));
+        }
+    }
+
+    @Test
+    public void testGetTokenBalanceByContractAddressReadsTokenAndBalance() throws IOException {
+        try (JsonRpcTestServer server = new JsonRpcTestServer(EvmClientTest::erc20Contract);
+                EvmClient evmClient = new EvmClient(Chain.AVALANCHE_MAIN, server.url())) {
+
+            Erc20TokenBalance balance = evmClient.getTokenBalance(CONTRACT_ADDRESS, HOLDER_ADDRESS);
+
+            Assertions.assertEquals(HOLDER_TOKEN_BALANCE, balance.getBalance());
+            Assertions.assertEquals("WAVAX", balance.getToken().getSymbol());
+        }
+    }
+
+    @Test
+    public void testGetTokenBalanceByContractAddressFailsWithoutAnErc20Contract() throws IOException {
+        try (JsonRpcTestServer server = new JsonRpcTestServer(request -> "0x");
+                EvmClient evmClient = new EvmClient(Chain.AVALANCHE_MAIN, server.url())) {
+
+            Assertions.assertThrows(
+                    EvmClientException.class, () -> evmClient.getTokenBalance(CONTRACT_ADDRESS, HOLDER_ADDRESS));
+        }
+    }
+
+    @Test
+    public void testGetTokenBalanceForAKnownTokenReadsOnlyTheBalance() throws IOException {
+        Erc20Token token = new Erc20Token(Chain.AVALANCHE_MAIN, CONTRACT_ADDRESS, "Wrapped AVAX", "WAVAX", null, null);
+        try (JsonRpcTestServer server = new JsonRpcTestServer(EvmClientTest::erc20Contract);
+                EvmClient evmClient = new EvmClient(Chain.AVALANCHE_MAIN, server.url())) {
+
+            Erc20TokenBalance balance = evmClient.getTokenBalance(token, HOLDER_ADDRESS);
+
+            Assertions.assertEquals(HOLDER_TOKEN_BALANCE, balance.getBalance());
+            Assertions.assertSame(token, balance.getToken());
+        }
+    }
+
+    @Test
+    public void testGetTokenBalanceForAKnownTokenWrapsAConnectionFailure() throws IOException {
+        Erc20Token token = new Erc20Token(Chain.AVALANCHE_MAIN, CONTRACT_ADDRESS, "Wrapped AVAX", "WAVAX", null, null);
+        try (EvmClient evmClient = new EvmClient(Chain.AVALANCHE_MAIN, unreachableUrl())) {
+
+            Assertions.assertThrows(EvmClientException.class, () -> evmClient.getTokenBalance(token, HOLDER_ADDRESS));
+        }
+    }
+
+    @Test
+    public void testGetTokenBalanceRejectsATokenFromAnotherChain() throws IOException {
+        Erc20Token token = new Erc20Token(Chain.ETHEREUM_MAIN, CONTRACT_ADDRESS, "Wrapped AVAX", "WAVAX", null, null);
+        try (EvmClient evmClient = new EvmClient(Chain.AVALANCHE_MAIN, unreachableUrl())) {
+
+            Assertions.assertThrows(
+                    IllegalArgumentException.class, () -> evmClient.getTokenBalance(token, HOLDER_ADDRESS));
+        }
+    }
+
+    @Test
+    public void testCreateWeb3ServiceUsesHttpForAnHttpsUrl() {
+        Assertions.assertInstanceOf(HttpService.class, EvmClient.createWeb3Service("https://rpc.example/"));
+    }
+
+    @Test
+    public void testCreateWeb3ServiceRejectsMissingOrMalformedUrls() {
+        Assertions.assertThrows(EvmClientException.class, () -> EvmClient.createWeb3Service(null));
+        Assertions.assertThrows(EvmClientException.class, () -> EvmClient.createWeb3Service("localhost:8545"));
+        Assertions.assertThrows(EvmClientException.class, () -> EvmClient.createWeb3Service("ftp://localhost/"));
+    }
+
+    @Test
+    public void testCreateWeb3ServiceWrapsAFailedWebSocketConnection() throws IOException {
+        String url = unreachableUrl().replace("http://", "ws://");
+
+        EvmClientException exception =
+                Assertions.assertThrows(EvmClientException.class, () -> EvmClient.createWeb3Service(url));
+
+        Assertions.assertInstanceOf(ConnectException.class, exception.getCause());
+    }
+
+    private static String erc20Contract(JsonNode request) {
+        String data = request.get("params").get(0).get("data").asText();
+        String selector = data.substring(0, 10);
+        return switch (selector) {
+            case "0x06fdde03" -> "0x" + FunctionEncoder.encodeConstructor(List.of(new Utf8String("Wrapped AVAX")));
+            case "0x95d89b41" -> "0x" + FunctionEncoder.encodeConstructor(List.of(new Utf8String("WAVAX")));
+            case "0x313ce567" -> "0x" + TypeEncoder.encode(new Uint256(18));
+            case "0x18160ddd" -> "0x" + TypeEncoder.encode(new Uint256(TOTAL_SUPPLY));
+            case "0x70a08231" -> "0x" + TypeEncoder.encode(new Uint256(HOLDER_TOKEN_BALANCE));
+            default -> throw new IllegalArgumentException("Unexpected call " + data);
+        };
+    }
+
+    private static String unreachableUrl() throws IOException {
+        try (JsonRpcTestServer server = new JsonRpcTestServer(request -> "0x")) {
+            return server.url();
+        }
+    }
+}
