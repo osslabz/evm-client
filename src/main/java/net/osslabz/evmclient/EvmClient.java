@@ -126,7 +126,7 @@ public class EvmClient implements Closeable {
         try {
             decimals = erc20.decimals().send();
         } catch (Exception e) {
-            log.warn("Couldn't fetch decimals for contract address{}.", contractAddress);
+            log.warn("Couldn't fetch decimals for contract address {}.", contractAddress);
         }
         try {
             totalSupply = erc20.totalSupply().send();

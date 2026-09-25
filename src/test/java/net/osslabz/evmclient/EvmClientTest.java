@@ -39,7 +39,7 @@ public class EvmClientTest {
     private static final List<String> NO_TOKEN_INFO_WARNINGS = List.of(
             "Couldn't fetch name for contract address " + CONTRACT_ADDRESS + ".",
             "Couldn't fetch symbol for contract address " + CONTRACT_ADDRESS + ".",
-            "Couldn't fetch decimals for contract address" + CONTRACT_ADDRESS + ".",
+            "Couldn't fetch decimals for contract address " + CONTRACT_ADDRESS + ".",
             "Couldn't fetch totalSupply for contract address " + CONTRACT_ADDRESS + ".");
 
     private final Logger clientLogger = (Logger) LoggerFactory.getLogger(EvmClient.class);
