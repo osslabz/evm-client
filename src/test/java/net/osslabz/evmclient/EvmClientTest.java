@@ -1,5 +1,9 @@
 package net.osslabz.evmclient;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -10,8 +14,11 @@ import net.osslabz.evmclient.dto.Chain;
 import net.osslabz.evmclient.dto.CoinBalance;
 import net.osslabz.evmclient.dto.Erc20Token;
 import net.osslabz.evmclient.dto.Erc20TokenBalance;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.TypeEncoder;
 import org.web3j.abi.datatypes.Utf8String;
@@ -28,6 +35,29 @@ public class EvmClientTest {
     private static final BigInteger TOTAL_SUPPLY = new BigInteger("1000000000000000000000000");
 
     private static final BigInteger HOLDER_TOKEN_BALANCE = new BigInteger("2500000000000000000");
+
+    private static final List<String> NO_TOKEN_INFO_WARNINGS = List.of(
+            "Couldn't fetch name for contract address " + CONTRACT_ADDRESS + ".",
+            "Couldn't fetch symbol for contract address " + CONTRACT_ADDRESS + ".",
+            "Couldn't fetch decimals for contract address" + CONTRACT_ADDRESS + ".",
+            "Couldn't fetch totalSupply for contract address " + CONTRACT_ADDRESS + ".");
+
+    private final Logger clientLogger = (Logger) LoggerFactory.getLogger(EvmClient.class);
+
+    private final ListAppender<ILoggingEvent> clientLog = new ListAppender<>();
+
+    @BeforeEach
+    void captureClientLog() {
+        clientLog.start();
+        clientLogger.addAppender(clientLog);
+        clientLogger.setAdditive(false);
+    }
+
+    @AfterEach
+    void releaseClientLog() {
+        clientLogger.setAdditive(true);
+        clientLogger.detachAppender(clientLog);
+    }
 
     @Test
     public void testGetBalanceReturnsTheBalanceInTheChainsCoin() throws IOException {
@@ -119,6 +149,7 @@ public class EvmClientTest {
 
             Assertions.assertTrue(exception.getMessage().startsWith("Couldn't fetch any token info"));
         }
+        Assertions.assertEquals(NO_TOKEN_INFO_WARNINGS, clientWarnings());
     }
 
     @Test
@@ -141,6 +172,7 @@ public class EvmClientTest {
             Assertions.assertThrows(
                     EvmClientException.class, () -> evmClient.getTokenBalance(CONTRACT_ADDRESS, HOLDER_ADDRESS));
         }
+        Assertions.assertEquals(NO_TOKEN_INFO_WARNINGS, clientWarnings());
     }
 
     @Test
@@ -208,6 +240,13 @@ public class EvmClientTest {
             case "0x70a08231" -> "0x" + TypeEncoder.encode(new Uint256(HOLDER_TOKEN_BALANCE));
             default -> throw new IllegalArgumentException("Unexpected call " + data);
         };
+    }
+
+    private List<String> clientWarnings() {
+        return clientLog.list.stream()
+                .filter(event -> event.getLevel() == Level.WARN)
+                .map(ILoggingEvent::getFormattedMessage)
+                .toList();
     }
 
     private static String unreachableUrl() throws IOException {
