@@ -11,10 +11,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 /**
- * A local JSON-RPC endpoint that answers every call with the result its handler returns for the request.
+ * A local JSON-RPC endpoint that answers every call with the result its handler returns for the request, or with an
+ * error or HTTP status.
  */
 final class JsonRpcTestServer implements AutoCloseable {
 
@@ -23,13 +25,22 @@ final class JsonRpcTestServer implements AutoCloseable {
     private final HttpServer server;
 
     JsonRpcTestServer(Function<JsonNode, String> resultForRequest) throws IOException {
-        this((HttpHandler) exchange -> respond(exchange, resultForRequest));
+        this((HttpHandler) exchange ->
+                respond(exchange, (request, response) -> response.put("result", resultForRequest.apply(request))));
     }
 
     private JsonRpcTestServer(HttpHandler handler) throws IOException {
         this.server = HttpServer.create(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0), 0);
         this.server.createContext("/", handler);
         this.server.start();
+    }
+
+    /** A server that answers every call with HTTP 200 and a JSON-RPC error object instead of a result. */
+    static JsonRpcTestServer answeringWithError(int code, String message) throws IOException {
+        return new JsonRpcTestServer((HttpHandler) exchange -> respond(
+                exchange,
+                (request, response) ->
+                        response.putObject("error").put("code", code).put("message", message)));
     }
 
     /** A server that answers every request with the given HTTP status and an empty body. */
@@ -45,7 +56,8 @@ final class JsonRpcTestServer implements AutoCloseable {
         return "http://127.0.0.1:" + this.server.getAddress().getPort() + "/";
     }
 
-    private static void respond(HttpExchange exchange, Function<JsonNode, String> resultForRequest) throws IOException {
+    private static void respond(HttpExchange exchange, BiConsumer<JsonNode, ObjectNode> outcomeForRequest)
+            throws IOException {
         JsonNode request;
         try (InputStream body = exchange.getRequestBody()) {
             request = OBJECT_MAPPER.readTree(body);
@@ -54,7 +66,7 @@ final class JsonRpcTestServer implements AutoCloseable {
         ObjectNode response = OBJECT_MAPPER.createObjectNode();
         response.put("jsonrpc", "2.0");
         response.set("id", request.get("id"));
-        response.put("result", resultForRequest.apply(request));
+        outcomeForRequest.accept(request, response);
         byte[] responseBody = OBJECT_MAPPER.writeValueAsBytes(response);
 
         exchange.getResponseHeaders().set("Content-Type", "application/json");

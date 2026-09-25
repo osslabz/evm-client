@@ -95,6 +95,18 @@ public class EvmClientTest {
     }
 
     @Test
+    public void testGetBalanceWrapsAJsonRpcError() throws IOException {
+        try (JsonRpcTestServer server = JsonRpcTestServer.answeringWithError(-32000, "header not found");
+                EvmClient evmClient = new EvmClient(Chain.AVALANCHE_MAIN, server.url())) {
+
+            EvmClientException exception =
+                    Assertions.assertThrows(EvmClientException.class, () -> evmClient.getBalance(HOLDER_ADDRESS));
+
+            Assertions.assertEquals("JSON-RPC error -32000: header not found", exception.getMessage());
+        }
+    }
+
+    @Test
     public void testGetLastBlockNumberReturnsTheNodesBlockNumber() throws IOException {
         try (JsonRpcTestServer server = new JsonRpcTestServer(request -> "0x2a");
                 EvmClient evmClient = new EvmClient(Chain.AVALANCHE_MAIN, server.url())) {
@@ -120,6 +132,18 @@ public class EvmClientTest {
                     Assertions.assertThrows(EvmClientException.class, evmClient::getLastBlockNumber);
 
             Assertions.assertInstanceOf(ClientConnectionException.class, exception.getCause());
+        }
+    }
+
+    @Test
+    public void testGetLastBlockNumberWrapsAJsonRpcError() throws IOException {
+        try (JsonRpcTestServer server = JsonRpcTestServer.answeringWithError(-32603, "internal error");
+                EvmClient evmClient = new EvmClient(Chain.AVALANCHE_MAIN, server.url())) {
+
+            EvmClientException exception =
+                    Assertions.assertThrows(EvmClientException.class, evmClient::getLastBlockNumber);
+
+            Assertions.assertEquals("JSON-RPC error -32603: internal error", exception.getMessage());
         }
     }
 

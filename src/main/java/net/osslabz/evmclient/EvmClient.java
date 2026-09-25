@@ -13,6 +13,7 @@ import org.web3j.contracts.eip20.generated.ERC20;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.Web3jService;
 import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.Response;
 import org.web3j.protocol.exceptions.ClientConnectionException;
 import org.web3j.tx.ReadonlyTransactionManager;
 import org.web3j.tx.TransactionManager;
@@ -52,9 +53,9 @@ public class EvmClient implements Closeable {
     public CoinBalance getBalance(String address) {
 
         try {
-            BigInteger balance = this.web3j
-                    .ethGetBalance(address, DefaultBlockParameterName.LATEST)
-                    .send()
+            BigInteger balance = requireResult(this.web3j
+                            .ethGetBalance(address, DefaultBlockParameterName.LATEST)
+                            .send())
                     .getBalance();
             return new CoinBalance(this.chainInfo, balance);
         } catch (IOException | ClientConnectionException e) {
@@ -98,10 +99,18 @@ public class EvmClient implements Closeable {
 
     public BigInteger getLastBlockNumber() {
         try {
-            return this.web3j.ethBlockNumber().send().getBlockNumber();
+            return requireResult(this.web3j.ethBlockNumber().send()).getBlockNumber();
         } catch (IOException | ClientConnectionException e) {
             throw new EvmClientException(e);
         }
+    }
+
+    private static <T extends Response<?>> T requireResult(T response) {
+        if (response.hasError()) {
+            Response.Error error = response.getError();
+            throw new EvmClientException("JSON-RPC error " + error.getCode() + ": " + error.getMessage());
+        }
+        return response;
     }
 
     public Erc20Token getTokenInfo(ERC20 erc20) {

@@ -22,6 +22,8 @@ Features:
   as its own `ClientConnectionException`. Both are wrapped in a
   RuntimeException (`net.osslabz.evmclient.EvmClientException`) so you don't have the handle/declare them. This is
   especially useful in an environment where a higher layer handles exceptions in a unified fashion (e.g. Spring).
+  `getBalance` and `getLastBlockNumber` also throw it when the node answers with a JSON-RPC error, with the error's
+  code and message.
 
 QuickStart
 ---------
