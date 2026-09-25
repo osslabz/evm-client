@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,9 +23,22 @@ final class JsonRpcTestServer implements AutoCloseable {
     private final HttpServer server;
 
     JsonRpcTestServer(Function<JsonNode, String> resultForRequest) throws IOException {
+        this((HttpHandler) exchange -> respond(exchange, resultForRequest));
+    }
+
+    private JsonRpcTestServer(HttpHandler handler) throws IOException {
         this.server = HttpServer.create(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0), 0);
-        this.server.createContext("/", exchange -> respond(exchange, resultForRequest));
+        this.server.createContext("/", handler);
         this.server.start();
+    }
+
+    /** A server that answers every request with the given HTTP status and an empty body. */
+    static JsonRpcTestServer failingWith(int httpStatus) throws IOException {
+        return new JsonRpcTestServer(exchange -> {
+            exchange.getRequestBody().readAllBytes();
+            exchange.sendResponseHeaders(httpStatus, -1);
+            exchange.close();
+        });
     }
 
     String url() {

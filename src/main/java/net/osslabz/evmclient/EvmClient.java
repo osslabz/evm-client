@@ -13,6 +13,7 @@ import org.web3j.contracts.eip20.generated.ERC20;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.Web3jService;
 import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.exceptions.ClientConnectionException;
 import org.web3j.tx.ReadonlyTransactionManager;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
@@ -56,7 +57,7 @@ public class EvmClient implements Closeable {
                     .send()
                     .getBalance();
             return new CoinBalance(this.chainInfo, balance);
-        } catch (IOException e) {
+        } catch (IOException | ClientConnectionException e) {
             throw new EvmClientException(e);
         }
     }
@@ -98,7 +99,7 @@ public class EvmClient implements Closeable {
     public BigInteger getLastBlockNumber() {
         try {
             return this.web3j.ethBlockNumber().send().getBlockNumber();
-        } catch (IOException e) {
+        } catch (IOException | ClientConnectionException e) {
             throw new EvmClientException(e);
         }
     }

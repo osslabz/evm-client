@@ -18,7 +18,8 @@ Features:
 - All returned objects are pure DTO/POJOs without any internal state except the data. They can be easily serialized (
   e.g. to JSON) or passed to a cache or session layer.
 - All Coins (primary currency of a given chain), token (ERC-20 compatible tokens) and balance objects carry the chain they belong to. This makes it easy to handle multiple chains in one application without risking loosing context.
-- web3j (sometimes) throws unclassified checked `java.lang.Exception`. Those are wrapped in a
+- web3j (sometimes) throws unclassified checked `java.lang.Exception`, and reports an HTTP error status from the node
+  as its own `ClientConnectionException`. Both are wrapped in a
   RuntimeException (`net.osslabz.evmclient.EvmClientException`) so you don't have the handle/declare them. This is
   especially useful in an environment where a higher layer handles exceptions in a unified fashion (e.g. Spring).
 

@@ -16,6 +16,7 @@ import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.TypeEncoder;
 import org.web3j.abi.datatypes.Utf8String;
 import org.web3j.abi.datatypes.generated.Uint256;
+import org.web3j.protocol.exceptions.ClientConnectionException;
 import org.web3j.protocol.http.HttpService;
 
 public class EvmClientTest {
@@ -52,6 +53,18 @@ public class EvmClientTest {
     }
 
     @Test
+    public void testGetBalanceWrapsAnHttpErrorStatus() throws IOException {
+        try (JsonRpcTestServer server = JsonRpcTestServer.failingWith(503);
+                EvmClient evmClient = new EvmClient(Chain.AVALANCHE_MAIN, server.url())) {
+
+            EvmClientException exception =
+                    Assertions.assertThrows(EvmClientException.class, () -> evmClient.getBalance(HOLDER_ADDRESS));
+
+            Assertions.assertInstanceOf(ClientConnectionException.class, exception.getCause());
+        }
+    }
+
+    @Test
     public void testGetLastBlockNumberReturnsTheNodesBlockNumber() throws IOException {
         try (JsonRpcTestServer server = new JsonRpcTestServer(request -> "0x2a");
                 EvmClient evmClient = new EvmClient(Chain.AVALANCHE_MAIN, server.url())) {
@@ -65,6 +78,18 @@ public class EvmClientTest {
         try (EvmClient evmClient = new EvmClient(Chain.AVALANCHE_MAIN, unreachableUrl())) {
 
             Assertions.assertThrows(EvmClientException.class, evmClient::getLastBlockNumber);
+        }
+    }
+
+    @Test
+    public void testGetLastBlockNumberWrapsAnHttpErrorStatus() throws IOException {
+        try (JsonRpcTestServer server = JsonRpcTestServer.failingWith(503);
+                EvmClient evmClient = new EvmClient(Chain.AVALANCHE_MAIN, server.url())) {
+
+            EvmClientException exception =
+                    Assertions.assertThrows(EvmClientException.class, evmClient::getLastBlockNumber);
+
+            Assertions.assertInstanceOf(ClientConnectionException.class, exception.getCause());
         }
     }
 
