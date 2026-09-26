@@ -1,10 +1,12 @@
 package org.web3j.protocol.websocket;
 
+import ch.qos.logback.classic.Level;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.reactivex.Flowable;
+import io.reactivex.subscribers.TestSubscriber;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.math.BigInteger;
@@ -15,6 +17,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import net.osslabz.evmclient.CapturedLog;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -112,11 +115,14 @@ public class LongLivingWebSocketServiceTest {
                 "{\"jsonrpc\":\"2.0\",\"method\":\"eth_subscription\",\"params\":{\"subscription\":\"" + SUBSCRIPTION_ID
                         + "\",\"result\":{\"number\":\"0x1b4\"}}}")));
 
-        Flowable<NewHeadsNotification> notifications =
-                service.subscribe(newHeadsRequest(service), "eth_unsubscribe", NewHeadsNotification.class);
+        // Staying subscribed keeps the unsubscribe request from racing the connection close after the test.
+        TestSubscriber<NewHeadsNotification> subscriber = service.subscribe(
+                        newHeadsRequest(service), "eth_unsubscribe", NewHeadsNotification.class)
+                .test();
 
+        subscriber.awaitCount(1);
         Assertions.assertEquals(
-                "0x1b4", notifications.blockingFirst().getParams().getResult().getNumber());
+                "0x1b4", subscriber.values().get(0).getParams().getResult().getNumber());
     }
 
     @Test
@@ -126,7 +132,7 @@ public class LongLivingWebSocketServiceTest {
             JsonNode request = parse(message);
             if ("eth_unsubscribe".equals(request.get("method").asText())) {
                 unsubscribeRequests.add(request);
-                return List.of();
+                return List.of(unsubscribed(request));
             }
             return List.of(
                     "{\"jsonrpc\":\"2.0\",\"id\":" + request.get("id") + ",\"result\":\"" + SUBSCRIPTION_ID + "\"}");
@@ -140,6 +146,7 @@ public class LongLivingWebSocketServiceTest {
         Assertions.assertNotNull(unsubscribeRequest);
         Assertions.assertEquals(
                 SUBSCRIPTION_ID, unsubscribeRequest.get("params").get(0).asText());
+        awaitReplyTo(service, unsubscribeRequest.get("id").asLong());
     }
 
     @Test
@@ -148,13 +155,16 @@ public class LongLivingWebSocketServiceTest {
                 connectTo(new WebSocketTestServer(message -> List.of("{\"jsonrpc\":\"2.0\",\"id\":"
                         + parse(message).get("id") + ",\"error\":{\"code\":-32601,\"message\":\"no newHeads\"}}")));
 
-        Flowable<NewHeadsNotification> notifications =
-                service.subscribe(newHeadsRequest(service), "eth_unsubscribe", NewHeadsNotification.class);
+        try (CapturedLog serviceLog = CapturedLog.of(LongLivingWebSocketService.class)) {
+            Flowable<NewHeadsNotification> notifications =
+                    service.subscribe(newHeadsRequest(service), "eth_unsubscribe", NewHeadsNotification.class);
 
-        RuntimeException exception = Assertions.assertThrows(RuntimeException.class, notifications::blockingFirst);
-        Assertions.assertEquals(
-                "Subscription request failed with error: no newHeads",
-                exception.getCause().getMessage());
+            RuntimeException exception = Assertions.assertThrows(RuntimeException.class, notifications::blockingFirst);
+            Assertions.assertEquals(
+                    "Subscription request failed with error: no newHeads",
+                    exception.getCause().getMessage());
+            serviceLog.await(Level.ERROR, "Subscription request returned error: no newHeads", 1);
+        }
     }
 
     @Test
@@ -176,7 +186,10 @@ public class LongLivingWebSocketServiceTest {
         }
         this.openService = new LongLivingWebSocketService(url, false);
 
-        Assertions.assertThrows(ConnectException.class, this.openService::connect);
+        try (CapturedLog clientLog = CapturedLog.of(WebSocketClient.class)) {
+            Assertions.assertThrows(ConnectException.class, this.openService::connect);
+            clientLog.await(Level.ERROR, "WebSocket connection to " + url + " failed with error", 1);
+        }
     }
 
     private LongLivingWebSocketService connectTo(WebSocketTestServer server) throws ConnectException {
@@ -198,6 +211,18 @@ public class LongLivingWebSocketServiceTest {
 
     private static Request<?, EthBlockNumber> blockNumberRequest(LongLivingWebSocketService service) {
         return new Request<>("eth_blockNumber", Collections.<String>emptyList(), service, EthBlockNumber.class);
+    }
+
+    private static void awaitReplyTo(LongLivingWebSocketService service, long requestId) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+        while (service.isWaitingForReply(requestId)) {
+            Assertions.assertTrue(System.nanoTime() < deadline, "no reply to request " + requestId);
+            Thread.sleep(10);
+        }
+    }
+
+    private static String unsubscribed(JsonNode request) {
+        return "{\"jsonrpc\":\"2.0\",\"id\":" + request.get("id") + ",\"result\":true}";
     }
 
     private static Request<?, EthSubscribe> newHeadsRequest(LongLivingWebSocketService service) {

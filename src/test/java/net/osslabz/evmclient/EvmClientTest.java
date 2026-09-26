@@ -1,9 +1,6 @@
 package net.osslabz.evmclient;
 
 import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -18,13 +15,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.TypeEncoder;
 import org.web3j.abi.datatypes.Utf8String;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.protocol.exceptions.ClientConnectionException;
 import org.web3j.protocol.http.HttpService;
+import org.web3j.protocol.websocket.WebSocketClient;
 
 public class EvmClientTest {
 
@@ -42,21 +39,16 @@ public class EvmClientTest {
             "Couldn't fetch decimals for contract address " + CONTRACT_ADDRESS + ".",
             "Couldn't fetch totalSupply for contract address " + CONTRACT_ADDRESS + ".");
 
-    private final Logger clientLogger = (Logger) LoggerFactory.getLogger(EvmClient.class);
-
-    private final ListAppender<ILoggingEvent> clientLog = new ListAppender<>();
+    private CapturedLog clientLog;
 
     @BeforeEach
     void captureClientLog() {
-        clientLog.start();
-        clientLogger.addAppender(clientLog);
-        clientLogger.setAdditive(false);
+        clientLog = CapturedLog.of(EvmClient.class);
     }
 
     @AfterEach
     void releaseClientLog() {
-        clientLogger.setAdditive(true);
-        clientLogger.detachAppender(clientLog);
+        clientLog.close();
     }
 
     @Test
@@ -173,7 +165,7 @@ public class EvmClientTest {
 
             Assertions.assertTrue(exception.getMessage().startsWith("Couldn't fetch any token info"));
         }
-        Assertions.assertEquals(NO_TOKEN_INFO_WARNINGS, clientWarnings());
+        Assertions.assertEquals(NO_TOKEN_INFO_WARNINGS, clientLog.messages(Level.WARN));
     }
 
     @Test
@@ -196,7 +188,7 @@ public class EvmClientTest {
             Assertions.assertThrows(
                     EvmClientException.class, () -> evmClient.getTokenBalance(CONTRACT_ADDRESS, HOLDER_ADDRESS));
         }
-        Assertions.assertEquals(NO_TOKEN_INFO_WARNINGS, clientWarnings());
+        Assertions.assertEquals(NO_TOKEN_INFO_WARNINGS, clientLog.messages(Level.WARN));
     }
 
     @Test
@@ -244,13 +236,16 @@ public class EvmClientTest {
     }
 
     @Test
-    public void testCreateWeb3ServiceWrapsAFailedWebSocketConnection() throws IOException {
+    public void testCreateWeb3ServiceWrapsAFailedWebSocketConnection() throws IOException, InterruptedException {
         String url = unreachableUrl().replace("http://", "ws://");
 
-        EvmClientException exception =
-                Assertions.assertThrows(EvmClientException.class, () -> EvmClient.createWeb3Service(url));
+        try (CapturedLog webSocketLog = CapturedLog.of(WebSocketClient.class)) {
+            EvmClientException exception =
+                    Assertions.assertThrows(EvmClientException.class, () -> EvmClient.createWeb3Service(url));
 
-        Assertions.assertInstanceOf(ConnectException.class, exception.getCause());
+            Assertions.assertInstanceOf(ConnectException.class, exception.getCause());
+            webSocketLog.await(Level.ERROR, "WebSocket connection to " + url + " failed with error", 1);
+        }
     }
 
     private static String erc20Contract(JsonNode request) {
@@ -264,13 +259,6 @@ public class EvmClientTest {
             case "0x70a08231" -> "0x" + TypeEncoder.encode(new Uint256(HOLDER_TOKEN_BALANCE));
             default -> throw new IllegalArgumentException("Unexpected call " + data);
         };
-    }
-
-    private List<String> clientWarnings() {
-        return clientLog.list.stream()
-                .filter(event -> event.getLevel() == Level.WARN)
-                .map(ILoggingEvent::getFormattedMessage)
-                .toList();
     }
 
     private static String unreachableUrl() throws IOException {
