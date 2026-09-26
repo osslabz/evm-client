@@ -8,10 +8,7 @@
         </encoder>
     </appender>
 
-    <logger name="org.web3j" level="INFO" />
-    <logger name="okhttp3" level="INFO" />
-    <logger name="org.java_websocket" level="INFO" />
-    <root level="DEBUG">
+    <root level="WARN">
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>

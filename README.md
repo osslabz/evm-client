@@ -92,7 +92,7 @@ Erc20Token(
 Logging
 ------
 This project uses slf4j-api but doesn't package an implementation. This is up to the using application. For the
-tests logback is backing slf4j as implementation, with a default configuration logging to STOUT.
+tests logback is backing slf4j as implementation, logging warnings and errors to STDOUT.
 
 
 Compatibility
