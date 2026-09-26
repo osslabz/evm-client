@@ -27,7 +27,7 @@
         <lombok.version>1.18.48</lombok.version>
 
         <web3j.groupId>org.web3j</web3j.groupId>
-        <web3j.version>4.10.0</web3j.version>
+        <web3j.version>6.0.0</web3j.version>
         <okhttp3.version>4.12.0</okhttp3.version>
 
         <!-- Tests tagged live call a public RPC node. -Dsurefire.excluded.groups= runs them. -->
