@@ -18,4 +18,4 @@ jobs:
       contents: write
       pull-requests: write
       actions: write
-    uses: osslabz/github-actions/.github/workflows/dependabot-merge-on-build.yml@v1.7.0
+    uses: osslabz/github-actions/.github/workflows/dependabot-merge-on-build.yml@v1
